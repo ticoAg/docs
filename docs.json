@@ -1,76 +1,142 @@
 {
-  "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "Mint 起步套件",
-  "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
-  },
-  "favicon": "/favicon.svg",
-  "navigation": {
-    "tabs": [
-      {
-        "tab": "使用指南",
-        "groups": [
-          {
-            "group": "使用指南",
-            "pages": [
-              "index"
-            ]
-          }
-        ]
-      }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "文档",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "博客",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
-  },
-  "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
-  },
-  "navbar": {
-    "links": [
-      {
-        "label": "支持",
-        "href": "mailto:hi@mintlify.com"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "控制台",
-      "href": "https://dashboard.mintlify.com"
-    }
-  },
-  "contextual": {
-    "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
-  },
-  "footer": {
-    "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
-    }
-  }
+	"$schema": "https://mintlify.com/docs.json",
+	"theme": "mint",
+	"name": "Mint 起步套件",
+	"colors": {
+		"primary": "#16A34A",
+		"light": "#07C983",
+		"dark": "#15803D"
+	},
+	"favicon": "/favicon.svg",
+	"openapi": "/usage-guide/api-reference/openapi.json",
+	"redirects": [
+		{ "source": "/quickstart", "destination": "/usage-guide/getting-started/quickstart", "permanent": true },
+		{ "source": "/development", "destination": "/usage-guide/getting-started/development", "permanent": true },
+		{ "source": "/essentials/settings", "destination": "/usage-guide/customization/settings", "permanent": true },
+		{ "source": "/essentials/navigation", "destination": "/usage-guide/customization/navigation", "permanent": true },
+		{ "source": "/essentials/markdown", "destination": "/usage-guide/writing-content/markdown", "permanent": true },
+		{ "source": "/essentials/code", "destination": "/usage-guide/writing-content/code", "permanent": true },
+		{ "source": "/essentials/images", "destination": "/usage-guide/writing-content/images", "permanent": true },
+		{
+			"source": "/essentials/reusable-snippets",
+			"destination": "/usage-guide/writing-content/reusable-snippets",
+			"permanent": true
+		},
+		{
+			"source": "/getting-started/quickstart",
+			"destination": "/usage-guide/getting-started/quickstart",
+			"permanent": true
+		},
+		{
+			"source": "/getting-started/development",
+			"destination": "/usage-guide/getting-started/development",
+			"permanent": true
+		},
+		{ "source": "/customization/settings", "destination": "/usage-guide/customization/settings", "permanent": true },
+		{
+			"source": "/customization/navigation",
+			"destination": "/usage-guide/customization/navigation",
+			"permanent": true
+		},
+		{
+			"source": "/writing-content/markdown",
+			"destination": "/usage-guide/writing-content/markdown",
+			"permanent": true
+		},
+		{ "source": "/writing-content/code", "destination": "/usage-guide/writing-content/code", "permanent": true },
+		{ "source": "/writing-content/images", "destination": "/usage-guide/writing-content/images", "permanent": true },
+		{
+			"source": "/writing-content/reusable-snippets",
+			"destination": "/usage-guide/writing-content/reusable-snippets",
+			"permanent": true
+		},
+		{
+			"source": "/api-reference/introduction",
+			"destination": "/usage-guide/api-reference/introduction",
+			"permanent": true
+		},
+		{
+			"source": "/api-reference/endpoint/get",
+			"destination": "/usage-guide/api-reference/endpoint/get",
+			"permanent": true
+		},
+		{
+			"source": "/api-reference/endpoint/create",
+			"destination": "/usage-guide/api-reference/endpoint/create",
+			"permanent": true
+		},
+		{
+			"source": "/api-reference/endpoint/delete",
+			"destination": "/usage-guide/api-reference/endpoint/delete",
+			"permanent": true
+		},
+		{
+			"source": "/api-reference/endpoint/webhook",
+			"destination": "/usage-guide/api-reference/endpoint/webhook",
+			"permanent": true
+		},
+		{
+			"source": "/api-reference/openapi.json",
+			"destination": "/usage-guide/api-reference/openapi.json",
+			"permanent": true
+		}
+	],
+	"navigation": {
+		"tabs": [
+			{
+				"tab": "使用指南",
+				"groups": [
+					{
+						"group": "使用指南",
+						"pages": ["index"]
+					},
+					{
+						"group": "Agent 生态",
+						"pages": ["indexes/agent-ecosystem"]
+					}
+				]
+			}
+		],
+		"global": {
+			"anchors": [
+				{
+					"anchor": "文档",
+					"href": "https://mintlify.com/docs",
+					"icon": "book-open-cover"
+				},
+				{
+					"anchor": "博客",
+					"href": "https://mintlify.com/blog",
+					"icon": "newspaper"
+				}
+			]
+		}
+	},
+	"logo": {
+		"light": "/logo/light.svg",
+		"dark": "/logo/dark.svg"
+	},
+	"navbar": {
+		"links": [
+			{
+				"label": "支持",
+				"href": "mailto:hi@mintlify.com"
+			}
+		],
+		"primary": {
+			"type": "button",
+			"label": "控制台",
+			"href": "https://dashboard.mintlify.com"
+		}
+	},
+	"contextual": {
+		"options": ["copy", "view", "chatgpt", "claude", "perplexity", "mcp", "cursor", "vscode"]
+	},
+	"footer": {
+		"socials": {
+			"x": "https://x.com/mintlify",
+			"github": "https://github.com/mintlify",
+			"linkedin": "https://linkedin.com/company/mintlify"
+		}
+	}
 }

@@ -1,0 +1,8 @@
+{
+  "indexFile": "indexes/agent-ecosystem.mdx",
+  "lists": [
+    { "key": "agent", "url": "https://github.com/stars/ticoAg/lists/agent" },
+    { "key": "agent-plugin", "url": "https://github.com/stars/ticoAg/lists/agent-plugin" }
+  ]
+}
+
