@@ -1,0 +1,4 @@
+interface:
+  display_name: "GitHub Repo Intel"
+  short_description: "抓取 GitHub 仓库基础信息，并为 indexes/agent-ecosystem.mdx 生成/插入归类条目。"
+  default_prompt: "给出一个 GitHub 仓库（owner/repo 或 URL）。抓取 description/topics/language/stars/最近更新/最新 release/README 摘要，基于 indexes/agent-ecosystem.mdx 的现有主类目给出 1-3 个归类建议，并生成符合该文件格式的 bullet。若用户确认归类与来源（agent/agent-plugin），再把 bullet 插入到对应 ## 段落下（避免重复，尽量按 stars 降序插入）。"

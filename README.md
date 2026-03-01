@@ -28,6 +28,32 @@ mint dev
 
 在浏览器中打开 `http://localhost:3000` 查看本地预览。
 
+## 文档维护工作流
+
+### 1) 使用指南（Usage Guide）
+
+- 站点入口页：`index.mdx`
+- 主要内容位于：`usage-guide/`（用于保持本地目录结构与页面层级一致）
+
+### 2) Agent 生态索引
+
+索引页：`indexes/agent-ecosystem.mdx`（按 repo 类型分组，并在条目中保留关键英文术语）。
+
+**检查 Stars Lists 是否有漏收录 repo（推荐在提交前跑一次）**
+
+```
+node scripts/stars/check-star-lists.mjs
+```
+
+配置文件：`scripts/stars/star-lists.config.json`（脚本会自动处理分页；后续新增 Stars list：在这里加一条 `{ key, url }` 即可）。
+
+如果检查提示某个 repo “Missing in index”，推荐用 `.codex/skills/gh-repo-intel` 先拉取仓库信息并生成可直接插入的条目，再按对应类目补到 `indexes/agent-ecosystem.mdx`。
+
+**自动更新 ⭐ Star 数（GitHub Action）**
+
+- 工作流：`.github/workflows/update-agent-ecosystem.yml`
+- 脚本：`scripts/update-agent-ecosystem.mjs`
+
 ## 发布变更
 
 在你的 [dashboard](https://dashboard.mintlify.com/settings/organization/github-app) 安装我们的 GitHub App，用于将仓库变更同步到线上部署。将更改推送到默认分支后，会自动部署到生产环境。
