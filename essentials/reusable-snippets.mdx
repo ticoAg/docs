@@ -1,6 +1,6 @@
 ---
-title: "Reusable snippets"
-description: "Reusable, custom snippets to keep content in sync"
+title: "可复用片段（Snippets）"
+description: "通过自定义 snippet 复用内容，并保持多处内容一致"
 icon: "recycle"
 ---
 
@@ -8,22 +8,18 @@ import SnippetIntro from '/snippets/snippet-intro.mdx';
 
 <SnippetIntro />
 
-## Creating a custom snippet
+## 创建自定义 snippet
 
-**Pre-condition**: You must create your snippet file in the `snippets` directory.
+**前置条件**：snippet 文件必须创建在 `snippets` 目录下。
 
 <Note>
-  Any page in the `snippets` directory will be treated as a snippet and will not
-  be rendered into a standalone page. If you want to create a standalone page
-  from the snippet, import the snippet into another file and call it as a
-  component.
+  `snippets` 目录中的任何页面都会被当作 snippet 处理，不会渲染为独立页面。
+  如果你希望从 snippet 生成一个独立页面，请将 snippet import 到其他文件中，并作为组件调用。
 </Note>
 
-### Default export
+### 默认导出（default export）
 
-1. Add content to your snippet file that you want to re-use across multiple
-   locations. Optionally, you can add variables that can be filled in via props
-   when you import the snippet.
+1. 在 snippet 文件中编写你希望在多个地方复用的内容。你也可以加入变量，在 import 时通过 props 传入值。
 
 ```mdx snippets/my-snippet.mdx
 Hello world! This is my content I want to reuse across pages. My keyword of the
@@ -31,11 +27,10 @@ day is {word}.
 ```
 
 <Warning>
-  The content that you want to reuse must be inside the `snippets` directory in
-  order for the import to work.
+  要复用的内容必须位于 `snippets` 目录内，否则 import 无法正常工作。
 </Warning>
 
-2. Import the snippet into your destination file.
+2. 在目标文件中 import 该 snippet。
 
 ```mdx destination-file.mdx
 ---
@@ -52,9 +47,9 @@ Lorem impsum dolor sit amet.
 <MySnippet word="bananas" />
 ```
 
-### Reusable variables
+### 可复用变量
 
-1. Export a variable from your snippet file:
+1. 在 snippet 文件中导出变量：
 
 ```mdx snippets/path/to/custom-variables.mdx
 export const myName = 'my name';
@@ -62,7 +57,7 @@ export const myName = 'my name';
 export const myObject = { fruit: 'strawberries' };
 ```
 
-2. Import the snippet from your destination file and use the variable:
+2. 在目标文件中 import，并使用该变量：
 
 ```mdx destination-file.mdx
 ---
@@ -75,10 +70,9 @@ import { myName, myObject } from '/snippets/path/to/custom-variables.mdx';
 Hello, my name is {myName} and I like {myObject.fruit}.
 ```
 
-### Reusable components
+### 可复用组件
 
-1. Inside your snippet file, create a component that takes in props by exporting
-   your component in the form of an arrow function.
+1. 在 snippet 文件中以箭头函数的形式导出组件，并通过 props 接收参数：
 
 ```mdx snippets/custom-component.mdx
 export const MyComponent = ({ title }) => (
@@ -90,11 +84,10 @@ export const MyComponent = ({ title }) => (
 ```
 
 <Warning>
-  MDX does not compile inside the body of an arrow function. Stick to HTML
-  syntax when you can or use a default export if you need to use MDX.
+  MDX 不会在箭头函数的函数体内编译。能用 HTML 时尽量用 HTML；如果必须使用 MDX，请改用 default export。
 </Warning>
 
-2. Import the snippet into your destination file and pass in the props
+2. 在目标文件中 import，并传入 props：
 
 ```mdx destination-file.mdx
 ---

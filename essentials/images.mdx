@@ -1,6 +1,6 @@
 ---
-title: 'Images and embeds'
-description: 'Add image, video, and other HTML elements'
+title: '图片与嵌入'
+description: '添加图片、视频和其他 HTML 元素'
 icon: 'image'
 ---
 
@@ -9,27 +9,27 @@ icon: 'image'
   src="https://mintlify-assets.b-cdn.net/bigbend.jpg"
 />
 
-## Image
+## 图片
 
-### Using Markdown
+### 使用 Markdown
 
-The [markdown syntax](https://www.markdownguide.org/basic-syntax/#images) lets you add images using the following code
+[Markdown 图片语法](https://www.markdownguide.org/basic-syntax/#images) 支持用如下方式插入图片：
 
 ```md
 ![title](/path/image.jpg)
 ```
 
-Note that the image file size must be less than 5MB. Otherwise, we recommend hosting on a service like [Cloudinary](https://cloudinary.com/) or [S3](https://aws.amazon.com/s3/). You can then use that URL and embed.
+注意：图片文件大小必须小于 5MB。否则建议使用 [Cloudinary](https://cloudinary.com/) 或 [S3](https://aws.amazon.com/s3/) 等服务托管，再通过 URL 进行嵌入。
 
-### Using embeds
+### 使用 HTML 标签
 
-To get more customizability with images, you can also use [embeds](/writing-content/embed) to add images
+如果你需要更高的自定义能力，也可以使用 HTML 标签插入图片：
 
 ```html
 <img height="200" src="/path/image.jpg" />
 ```
 
-## Embeds and HTML elements
+## 嵌入与 HTML 元素
 
 <iframe
   width="560"
@@ -46,13 +46,13 @@ To get more customizability with images, you can also use [embeds](/writing-cont
 
 <Tip>
 
-Mintlify supports [HTML tags in Markdown](https://www.markdownguide.org/basic-syntax/#html). This is helpful if you prefer HTML tags to Markdown syntax, and lets you create documentation with infinite flexibility.
+Mintlify 支持在 Markdown 中使用 [HTML 标签](https://www.markdownguide.org/basic-syntax/#html)。如果你更习惯 HTML，或需要更强的表现力，这会非常有用。
 
 </Tip>
 
 ### iFrames
 
-Loads another HTML page within the document. Most commonly used for embedding videos.
+在文档中加载另一个 HTML 页面。最常见的用途是嵌入视频。
 
 ```html
 <iframe src="https://www.youtube.com/embed/4KzFe50RQkQ"> </iframe>

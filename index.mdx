@@ -1,97 +1,67 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: "使用指南"
+description: "将快速上手、自定义、编写内容与 API 参考统一归档到此页"
 ---
 
-## Setting up
+<Note>
+  本仓库已将原先分散在导航中的「快速上手 / 自定义 / 编写内容 / API 参考」统一归档到本页面。其他页面仍会保留在仓库中，但不再出现在侧边栏导航里。
+</Note>
 
-Get your documentation site up and running in minutes.
+## 快速上手
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
-
-## Make it yours
-
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+<CardGroup cols={2}>
+  <Card title="快速开始" icon="rocket" href="/quickstart">
+    跟随 3 步快速开始指南完成初始化。
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="本地开发" icon="rectangle-terminal" href="/development">
+    在本地预览文档并持续迭代。
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
-  </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
-  </Card>
-</Columns>
+</CardGroup>
 
-## Create beautiful pages
+## 自定义
 
-Everything you need to create world-class documentation.
+<CardGroup cols={2}>
+  <Card title="全局设置" icon="gear" href="/essentials/settings">
+    通过 `docs.json` 配置主题、颜色、logo、导航等全局设置。
+  </Card>
+  <Card title="配置导航" icon="map" href="/essentials/navigation">
+    在 `docs.json` 的 `navigation` 字段中组织页面结构。
+  </Card>
+</CardGroup>
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+## 编写内容
 
-## Need inspiration?
+<CardGroup cols={2}>
+  <Card title="Markdown 语法" icon="text-size" href="/essentials/markdown">
+    标题、文本样式、链接、引用块与 LaTeX 等基础写法。
+  </Card>
+  <Card title="代码块" icon="code" href="/essentials/code">
+    行内代码与 fenced code blocks（语法高亮、文件名）。
+  </Card>
+  <Card title="图片与嵌入" icon="image" href="/essentials/images">
+    使用 Markdown 或 HTML 标签添加图片、视频与 iframe 等。
+  </Card>
+  <Card title="可复用片段（Snippets）" icon="recycle" href="/essentials/reusable-snippets">
+    通过 snippets 目录实现内容复用与一致性维护。
+  </Card>
+</CardGroup>
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+## API 参考
+
+<CardGroup cols={2}>
+  <Card title="API 文档" icon="terminal" href="/api-reference/introduction">
+    了解如何用 OpenAPI 或 MDX components 构建 API 文档。
+  </Card>
+  <Card title="Endpoint：获取植物" icon="leaf" href="/api-reference/endpoint/get">
+    OpenAPI：`GET /plants`
+  </Card>
+  <Card title="Endpoint：创建植物" icon="leaf" href="/api-reference/endpoint/create">
+    OpenAPI：`POST /plants`
+  </Card>
+  <Card title="Endpoint：删除植物" icon="leaf" href="/api-reference/endpoint/delete">
+    OpenAPI：`DELETE /plants/{id}`
+  </Card>
+  <Card title="Endpoint：新增植物（Webhook）" icon="leaf" href="/api-reference/endpoint/webhook">
+    OpenAPI：`WEBHOOK /plant/webhook`
+  </Card>
+</CardGroup>
