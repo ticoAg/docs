@@ -8,10 +8,6 @@ function formatStars(stars) {
   return new Intl.NumberFormat('en-US').format(stars);
 }
 
-function getTodayISODate() {
-  return new Date().toISOString().slice(0, 10);
-}
-
 function parseRepoFromLine(line) {
   const match = line.match(/\]\(https:\/\/github\.com\/([^/\s)]+)\/([^/\s)]+)\)/);
   if (!match) return null;
@@ -73,7 +69,6 @@ async function main() {
   const targetFile = process.argv[2] || DEFAULT_TARGET;
   const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN || '';
   const maxConcurrency = Number.parseInt(process.env.MAX_CONCURRENCY || '8', 10);
-  const today = process.env.GENERATED_DATE || getTodayISODate();
 
   const original = await fs.readFile(targetFile, 'utf8');
   const lines = original.split('\n');
@@ -141,15 +136,13 @@ async function main() {
     return `${line}（⭐ ${formatted}）`;
   });
 
-  const updatedContent = updatedLines
-    .join('\n')
-    .replace(/生成日期：\d{4}-\d{2}-\d{2}/g, `生成日期：${today}`);
+  const updatedContent = updatedLines.join('\n');
 
   if (updatedContent === original) {
     console.log('No changes detected.');
   } else {
     await fs.writeFile(targetFile, updatedContent, 'utf8');
-    console.log(`Updated ${updatedRepoLines} repository lines and refreshed date to ${today}.`);
+    console.log(`Updated ${updatedRepoLines} repository lines.`);
   }
 
   if (warnings.length > 0) {

@@ -53,6 +53,7 @@ node scripts/stars/check-star-lists.mjs
 
 - 工作流：`.github/workflows/update-agent-ecosystem.yml`
 - 脚本：`scripts/update-agent-ecosystem.mjs`
+- 触发方式：定时（每周）或手动触发；工作流会自动创建 PR（避免每次 push 后自动写回 main，导致本地频繁需要 pull）
 
 ## 发布变更
 
