@@ -1,43 +1,43 @@
-# Mintlify Starter Kit
+# Mintlify 起步套件
 
-Use the starter kit to get your docs deployed and ready to customize.
+使用本起步套件，可以快速完成文档站点的部署，并开始进行个性化定制。
 
-Click the green **Use this template** button at the top of this repo to copy the Mintlify starter kit. The starter kit contains examples with
+点击仓库顶部绿色的 **Use this template** 按钮，复制一份 Mintlify 起步套件。起步套件包含以下示例：
 
-- Guide pages
-- Navigation
-- Customizations
-- API reference pages
-- Use of popular components
+- 指南页面（Guides）
+- 导航（Navigation）
+- 定制项（Customizations）
+- API 参考页（API reference）
+- 常用组件的用法示例
 
-**[Follow the full quickstart guide](https://starter.mintlify.com/quickstart)**
+**[查看完整快速开始指南](https://starter.mintlify.com/quickstart)**
 
-## Development
+## 本地开发
 
-Install the [Mintlify CLI](https://www.npmjs.com/package/mint) to preview your documentation changes locally. To install, use the following command:
+安装 [Mintlify CLI](https://www.npmjs.com/package/mint) 以在本地预览文档改动。安装命令如下：
 
 ```
 npm i -g mint
 ```
 
-Run the following command at the root of your documentation, where your `docs.json` is located:
+在文档仓库根目录（也就是 `docs.json` 所在目录）运行：
 
 ```
 mint dev
 ```
 
-View your local preview at `http://localhost:3000`.
+在浏览器中打开 `http://localhost:3000` 查看本地预览。
 
-## Publishing changes
+## 发布变更
 
-Install our GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app) to propagate changes from your repo to your deployment. Changes are deployed to production automatically after pushing to the default branch.
+在你的 [dashboard](https://dashboard.mintlify.com/settings/organization/github-app) 安装我们的 GitHub App，用于将仓库变更同步到线上部署。将更改推送到默认分支后，会自动部署到生产环境。
 
-## Need help?
+## 需要帮助？
 
-### Troubleshooting
+### 故障排查
 
-- If your dev environment isn't running: Run `mint update` to ensure you have the most recent version of the CLI.
-- If a page loads as a 404: Make sure you are running in a folder with a valid `docs.json`.
+- 如果本地开发环境无法运行：执行 `mint update` 确保 CLI 为最新版本。
+- 如果页面打开是 404：确认你是在包含有效 `docs.json` 的目录中运行 `mint dev`。
 
-### Resources
-- [Mintlify documentation](https://mintlify.com/docs)
+### 资源
+- [Mintlify 官方文档](https://mintlify.com/docs)
