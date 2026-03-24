@@ -96,6 +96,16 @@ function formatList(items) {
   return items.map((s) => `- ${s}`).join('\n');
 }
 
+function getIndexFiles(config, configPath) {
+  if (Array.isArray(config.indexFiles) && config.indexFiles.length > 0) {
+    return config.indexFiles;
+  }
+  if (typeof config.indexFile === 'string' && config.indexFile) {
+    return [config.indexFile];
+  }
+  throw new Error(`Missing "indexFile" or non-empty "indexFiles" in ${configPath}`);
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args.help) {
@@ -115,22 +125,23 @@ async function main() {
   const configRaw = await fs.readFile(configPath, 'utf8');
   const config = JSON.parse(configRaw);
 
-  const indexFile = config.indexFile;
-  if (!indexFile) throw new Error(`Missing "indexFile" in ${configPath}`);
+  const indexFiles = getIndexFiles(config, configPath);
 
   const lists = config.lists;
   if (!Array.isArray(lists) || lists.length === 0) throw new Error(`Missing/empty "lists" in ${configPath}`);
 
-  const indexRaw = await fs.readFile(indexFile, 'utf8');
   const indexRepos = new Set();
-  for (const line of indexRaw.split('\n')) {
-    const r = parseRepoFromMdxLine(line);
-    if (r) indexRepos.add(r);
+  for (const indexFile of indexFiles) {
+    const indexRaw = await fs.readFile(indexFile, 'utf8');
+    for (const line of indexRaw.split('\n')) {
+      const r = parseRepoFromMdxLine(line);
+      if (r) indexRepos.add(r);
+    }
   }
 
-  if (indexRepos.size === 0) throw new Error(`No GitHub repositories found in ${indexFile}`);
+  if (indexRepos.size === 0) throw new Error(`No GitHub repositories found in ${indexFiles.join(', ')}`);
 
-  console.log(`Index repos: ${indexRepos.size} (${indexFile})`);
+  console.log(`Index repos: ${indexRepos.size} (${indexFiles.length} files)`);
 
   let hasMissing = false;
   for (const list of lists) {
@@ -157,4 +168,3 @@ async function main() {
 }
 
 await main();
-

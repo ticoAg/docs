@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
+import path from 'node:path';
 
-const DEFAULT_TARGET = 'indexes/agent-ecosystem.mdx';
+const DEFAULT_TARGET = 'indexes';
 const GITHUB_API_BASE = 'https://api.github.com';
 const API_VERSION = '2022-11-28';
 
@@ -65,26 +66,46 @@ async function mapWithConcurrency(items, limit, fn) {
   return results;
 }
 
+async function collectTargetFiles(targetPath) {
+  const stat = await fs.stat(targetPath);
+  if (stat.isFile()) return [targetPath];
+  if (!stat.isDirectory()) throw new Error(`Unsupported target: ${targetPath}`);
+
+  const entries = await fs.readdir(targetPath, { withFileTypes: true });
+  return entries
+    .filter((entry) => entry.isFile() && entry.name.endsWith('.mdx'))
+    .map((entry) => path.join(targetPath, entry.name))
+    .sort((a, b) => a.localeCompare(b));
+}
+
 async function main() {
-  const targetFile = process.argv[2] || DEFAULT_TARGET;
+  const targetPath = process.argv[2] || DEFAULT_TARGET;
   const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN || '';
   const maxConcurrency = Number.parseInt(process.env.MAX_CONCURRENCY || '8', 10);
-
-  const original = await fs.readFile(targetFile, 'utf8');
-  const lines = original.split('\n');
+  const targetFiles = await collectTargetFiles(targetPath);
 
   const reposInFile = new Set();
-  for (const line of lines) {
-    const fullName = parseRepoFromLine(line);
-    if (fullName) reposInFile.add(fullName);
+  const originals = new Map();
+  const linesByFile = new Map();
+
+  for (const targetFile of targetFiles) {
+    const original = await fs.readFile(targetFile, 'utf8');
+    const lines = original.split('\n');
+    originals.set(targetFile, original);
+    linesByFile.set(targetFile, lines);
+
+    for (const line of lines) {
+      const fullName = parseRepoFromLine(line);
+      if (fullName) reposInFile.add(fullName);
+    }
   }
 
   const repos = Array.from(reposInFile).sort((a, b) => a.localeCompare(b));
   if (repos.length === 0) {
-    throw new Error(`No GitHub repositories found in ${targetFile}`);
+    throw new Error(`No GitHub repositories found in ${targetPath}`);
   }
 
-  console.log(`Found ${repos.length} repositories in ${targetFile}`);
+  console.log(`Found ${repos.length} repositories across ${targetFiles.length} files in ${targetPath}`);
   if (!token) {
     console.log('No GITHUB_TOKEN provided; using unauthenticated GitHub API requests (rate-limited).');
   }
@@ -104,45 +125,55 @@ async function main() {
   });
 
   let updatedRepoLines = 0;
-  const updatedLines = lines.map((line) => {
-    if (!line.includes('https://github.com/')) return line;
+  let updatedFiles = 0;
 
-    const fullName = parseRepoFromLine(line);
-    if (!fullName) return line;
+  for (const targetFile of targetFiles) {
+    const original = originals.get(targetFile);
+    const lines = linesByFile.get(targetFile);
 
-    const stars = starsByRepo.get(fullName);
-    if (typeof stars !== 'number') return line;
+    const updatedLines = lines.map((line) => {
+      if (!line.includes('https://github.com/')) return line;
 
-    const formatted = formatStars(stars);
-    if (line.includes('⭐')) {
-      const next = line.replace(/⭐\s*[\d,]+/g, `⭐ ${formatted}`);
-      if (next !== line) updatedRepoLines += 1;
-      return next;
-    }
+      const fullName = parseRepoFromLine(line);
+      if (!fullName) return line;
 
-    const insertBefore = '；来自：';
-    if (line.includes(insertBefore)) {
+      const stars = starsByRepo.get(fullName);
+      if (typeof stars !== 'number') return line;
+
+      const formatted = formatStars(stars);
+      if (line.includes('⭐')) {
+        const next = line.replace(/⭐\s*[\d,]+/g, `⭐ ${formatted}`);
+        if (next !== line) updatedRepoLines += 1;
+        return next;
+      }
+
+      const insertBefore = '；来自：';
+      if (line.includes(insertBefore)) {
+        updatedRepoLines += 1;
+        return line.replace(insertBefore, `；⭐ ${formatted}${insertBefore}`);
+      }
+
+      const closeParen = '）';
+      if (line.includes(closeParen)) {
+        updatedRepoLines += 1;
+        return line.replace(closeParen, `；⭐ ${formatted}${closeParen}`);
+      }
+
       updatedRepoLines += 1;
-      return line.replace(insertBefore, `；⭐ ${formatted}${insertBefore}`);
-    }
+      return `${line}（⭐ ${formatted}）`;
+    });
 
-    const closeParen = '）';
-    if (line.includes(closeParen)) {
-      updatedRepoLines += 1;
-      return line.replace(closeParen, `；⭐ ${formatted}${closeParen}`);
-    }
+    const updatedContent = updatedLines.join('\n');
+    if (updatedContent === original) continue;
 
-    updatedRepoLines += 1;
-    return `${line}（⭐ ${formatted}）`;
-  });
+    await fs.writeFile(targetFile, updatedContent, 'utf8');
+    updatedFiles += 1;
+  }
 
-  const updatedContent = updatedLines.join('\n');
-
-  if (updatedContent === original) {
+  if (updatedFiles === 0) {
     console.log('No changes detected.');
   } else {
-    await fs.writeFile(targetFile, updatedContent, 'utf8');
-    console.log(`Updated ${updatedRepoLines} repository lines.`);
+    console.log(`Updated ${updatedRepoLines} repository lines across ${updatedFiles} files.`);
   }
 
   if (warnings.length > 0) {

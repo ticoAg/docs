@@ -1,5 +1,16 @@
 {
-  "indexFile": "indexes/agent-ecosystem.mdx",
+  "indexFiles": [
+    "indexes/agent-cli.mdx",
+    "indexes/agent-orchestration.mdx",
+    "indexes/agent-frameworks.mdx",
+    "indexes/prompts.mdx",
+    "indexes/gateways.mdx",
+    "indexes/tools.mdx",
+    "indexes/mcp.mdx",
+    "indexes/context-engineering.mdx",
+    "indexes/skills.mdx",
+    "indexes/sandboxes.mdx"
+  ],
   "lists": [
     { "key": "agent", "url": "https://github.com/stars/ticoAg/lists/agent" },
     { "key": "agent-plugin", "url": "https://github.com/stars/ticoAg/lists/agent-plugin" },
