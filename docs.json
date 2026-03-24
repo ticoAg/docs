@@ -1,14 +1,13 @@
 {
 	"$schema": "https://mintlify.com/docs.json",
 	"theme": "mint",
-	"name": "Mint 起步套件",
+	"name": "ticoAg Agent Ecosystem",
 	"colors": {
-		"primary": "#16A34A",
-		"light": "#07C983",
-		"dark": "#15803D"
+		"primary": "#0F766E",
+		"light": "#14B8A6",
+		"dark": "#115E59"
 	},
 	"favicon": "/favicon.svg",
-	"openapi": "/usage-guide/api-reference/openapi.json",
 	"redirects": [
 		{ "source": "/quickstart", "destination": "/usage-guide/getting-started/quickstart", "permanent": true },
 		{ "source": "/development", "destination": "/usage-guide/getting-started/development", "permanent": true },
@@ -84,15 +83,25 @@
 	"navigation": {
 		"tabs": [
 			{
-				"tab": "使用指南",
+				"tab": "资源目录",
 				"groups": [
 					{
-						"group": "使用指南",
+						"group": "开始",
 						"pages": ["index"]
 					},
 					{
-						"group": "Agent 生态",
+						"group": "生态索引",
 						"pages": ["indexes/agent-ecosystem"]
+					},
+					{
+						"group": "维护",
+						"pages": [
+							"usage-guide/getting-started/maintaining-agent-ecosystem",
+							"usage-guide/getting-started/development",
+							"usage-guide/customization/navigation",
+							"usage-guide/customization/settings",
+							"usage-guide/writing-content/reusable-snippets"
+						]
 					}
 				]
 			}
@@ -100,14 +109,14 @@
 		"global": {
 			"anchors": [
 				{
-					"anchor": "文档",
-					"href": "https://mintlify.com/docs",
-					"icon": "book-open-cover"
+					"anchor": "GitHub Stars",
+					"href": "https://github.com/ticoAg?tab=stars",
+					"icon": "star"
 				},
 				{
-					"anchor": "博客",
-					"href": "https://mintlify.com/blog",
-					"icon": "newspaper"
+					"anchor": "Skills List",
+					"href": "https://github.com/stars/ticoAg/lists/skills",
+					"icon": "sparkles"
 				}
 			]
 		}
@@ -119,14 +128,14 @@
 	"navbar": {
 		"links": [
 			{
-				"label": "支持",
-				"href": "mailto:hi@mintlify.com"
+				"label": "GitHub",
+				"href": "https://github.com/ticoAg?tab=stars"
 			}
 		],
 		"primary": {
 			"type": "button",
-			"label": "控制台",
-			"href": "https://dashboard.mintlify.com"
+			"label": "浏览索引",
+			"href": "/indexes/agent-ecosystem"
 		}
 	},
 	"contextual": {
@@ -134,9 +143,7 @@
 	},
 	"footer": {
 		"socials": {
-			"x": "https://x.com/mintlify",
-			"github": "https://github.com/mintlify",
-			"linkedin": "https://linkedin.com/company/mintlify"
+			"github": "https://github.com/ticoAg"
 		}
 	}
 }

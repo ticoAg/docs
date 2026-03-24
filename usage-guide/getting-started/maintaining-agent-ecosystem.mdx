@@ -1,0 +1,95 @@
+---
+title: "维护 Agent 生态目录"
+description: "同步 stars lists、补充仓库条目、刷新星标与本地预览的维护流程"
+---
+
+<Note>
+	这个文档站的核心内容是 [Agent 生态目录](/indexes/agent-ecosystem)。目录来源于
+	`ticoAg` 的多个 GitHub Stars Lists，但最终按仓库“主用途”归类，而不是按来源列表机械分桶。
+</Note>
+
+## 来源列表
+
+当前接入 3 个来源：
+
+- `agent`：`https://github.com/stars/ticoAg/lists/agent`
+- `agent-plugin`：`https://github.com/stars/ticoAg/lists/agent-plugin`
+- `skills`：`https://github.com/stars/ticoAg/lists/skills`
+
+配置文件：
+
+- `scripts/stars/star-lists.config.json`
+
+索引文件：
+
+- `indexes/agent-ecosystem.mdx`
+
+## 维护流程
+
+### 1. 检查是否有漏收录仓库
+
+```bash
+node scripts/stars/check-star-lists.mjs
+```
+
+如果输出 `Missing in index`，说明某些仓库还没有进入索引页。
+
+### 2. 拉取仓库信息并决定归类
+
+推荐使用仓库内的 `gh-repo-intel` 工作流先生成候选条目：
+
+```bash
+python3 .codex/skills/gh-repo-intel/scripts/repo_intel.py owner/repo --json
+```
+
+归类原则：
+
+- 按“主用途”做单一归类
+- `skills` 来源里的仓库，也可能进入 `Tools`、`MCP`、`Agent` 等 section
+- 避免因为来源列表相同，就把主用途明显不同的项目堆在一个分组里
+
+### 3. 更新索引页条目
+
+把新仓库补到 `indexes/agent-ecosystem.mdx` 的对应 section，保持：
+
+- 一行一个 repo
+- 简短说明主用途
+- 保留语言和星标信息
+
+### 4. 刷新全表星标
+
+```bash
+GH_TOKEN=$(gh auth token) node scripts/update-agent-ecosystem.mjs
+```
+
+如果不带 `GH_TOKEN`，GitHub API 更容易触发 rate limit。
+
+### 5. 重新校验
+
+```bash
+node scripts/stars/check-star-lists.mjs
+```
+
+理想结果是每个来源都显示：
+
+```text
+OK: no missing repos in index
+```
+
+## 本地预览
+
+```bash
+mint dev
+```
+
+然后访问 `http://localhost:3000`。
+
+## 站点改动建议
+
+适合优先维护的文件：
+
+- `index.mdx`：目录站首页
+- `indexes/agent-ecosystem.mdx`：资源索引
+- `docs.json`：Mint 站点名称、导航、navbar、footer
+
+如果只是补充仓库条目，通常不需要动其他示例页面。
