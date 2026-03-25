@@ -1,7 +1,7 @@
 {
 	"$schema": "https://mintlify.com/docs.json",
 	"theme": "mint",
-	"name": "冒险家",
+	"name": "AI 智能体资源目录",
 	"colors": {
 		"primary": "#0F766E",
 		"light": "#14B8A6",
@@ -111,12 +111,12 @@
 		"global": {
 			"anchors": [
 				{
-					"anchor": "GitHub Stars",
+					"anchor": "GitHub 星标",
 					"href": "https://github.com/ticoAg?tab=stars",
 					"icon": "star"
 				},
 				{
-					"anchor": "Skills List",
+					"anchor": "技能清单",
 					"href": "https://github.com/stars/ticoAg/lists/skills",
 					"icon": "sparkles"
 				}
@@ -130,7 +130,7 @@
 	"navbar": {
 		"links": [
 			{
-				"label": "GitHub",
+				"label": "GitHub 主页",
 				"href": "https://github.com/ticoAg?tab=stars"
 			}
 		],

@@ -1,0 +1,15 @@
+@media (min-width: 1536px) {
+  #content-area {
+    max-width: 1680px;
+    margin-inline: auto;
+  }
+
+  #content-area .prose {
+    max-width: 78ch;
+  }
+
+  #page-title {
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+  }
+}
