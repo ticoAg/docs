@@ -1,11 +1,11 @@
 ---
-title: "维护 Agent 生态目录"
-description: "同步 stars lists、补充仓库条目、刷新星标与本地预览的维护流程"
+title: "维护智能体生态目录"
+description: "同步星标列表、补充仓库条目、刷新星标与本地预览的维护流程"
 ---
 
 <Note>
-	这个文档站的核心内容是 [Agent 生态目录](/indexes/agent-ecosystem)。目录来源于
-	`ticoAg` 的多个 GitHub Stars Lists，但最终按仓库“主用途”归类，而不是按来源列表机械分桶。
+	这个文档站的核心内容是 [智能体生态目录](/indexes/agent-ecosystem)。目录来源于
+	`ticoAg` 的多个 GitHub 星标列表，但最终按仓库“主用途”归类，而不是按来源列表机械分桶。
 </Note>
 
 ## 来源列表
@@ -46,7 +46,7 @@ python3 .codex/skills/gh-repo-intel/scripts/repo_intel.py owner/repo --json
 归类原则：
 
 - 按“主用途”做单一归类
-- `skills` 来源里的仓库，也可能进入 `Tools`、`MCP`、`Agent` 等 section
+- `skills` 来源里的仓库，也可能进入 `工具`、`MCP`、`智能体` 等分类
 - 避免因为来源列表相同，就把主用途明显不同的项目堆在一个分组里
 
 ### 3. 更新索引页条目
@@ -91,6 +91,6 @@ mint dev
 
 - `index.mdx`：目录站首页
 - `indexes/agent-ecosystem.mdx`：资源索引
-- `docs.json`：Mint 站点名称、导航、navbar、footer
+- `docs.json`：Mint 站点名称、导航、顶栏与页脚
 
 如果只是补充仓库条目，通常不需要动其他示例页面。
