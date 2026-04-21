@@ -21,10 +21,10 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Update stars in indexes/agent-ecosystem.mdx
+      - name: Update stars in indexes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: node scripts/update-agent-ecosystem.mjs indexes/agent-ecosystem.mdx
+        run: node scripts/update-agent-ecosystem.mjs indexes
 
       - name: Open PR (if any changes)
         uses: peter-evans/create-pull-request@v6
@@ -33,6 +33,6 @@ jobs:
           delete-branch: true
           title: "docs: update agent ecosystem stars"
           commit-message: "docs: update agent ecosystem stars"
-          body: "Automated update of GitHub ⭐ star counts in `indexes/agent-ecosystem.mdx`."
+          body: "Automated update of GitHub ⭐ star counts in `indexes/`."
           add-paths: |
-            indexes/agent-ecosystem.mdx
+            indexes/*.mdx
