@@ -1,0 +1,173 @@
+---
+title: "Lark"
+description: "飞书/Lark 官方 CLI、AI Agent Skills、OpenAPI MCP 的安装、认证和使用方式"
+---
+
+飞书 / Lark 现在有三层官方能力：`lark-cli` 给人和 Agent 跑命令，官方 Skills 教 Agent 怎么稳定使用 CLI，OpenAPI MCP 让支持 MCP 的客户端直接调用开放平台 API。
+
+## 什么时候用
+
+| 场景                                   | 推荐工具                           |
+| -------------------------------------- | ---------------------------------- |
+| 日常办公自动化、消息、文档、任务、日历 | `lark-cli`                         |
+| 让 Agent 长期稳定操作飞书              | 官方 Lark Skills                   |
+| 大面积调用开放平台 API                 | Lark OpenAPI MCP                   |
+| 需要探索陌生 API 的参数和权限          | `lark-cli schema` / `lark-cli api` |
+
+经验判断：高频动作优先 `lark-cli` 和官方 Skills，MCP 做更宽的 API 补充探索。写操作尽量先跑 `--dry-run` 或让 Agent 明确对象 ID、权限和参数。
+
+## 官方 Lark CLI
+
+安装 CLI 和官方 Skills：
+
+```bash
+npm install -g @larksuite/cli
+npx skills add larksuite/cli -y -g
+```
+
+初始化和登录：
+
+```bash
+lark-cli config init
+lark-cli auth login --recommend
+lark-cli auth status
+lark-cli doctor
+```
+
+常用命令：
+
+```bash
+# 查看今天日程
+lark-cli calendar +agenda
+
+# 发送消息
+lark-cli im +messages-send --chat-id "oc_xxx" --text "Hello from Lark CLI"
+
+# 用 Markdown 创建文档
+lark-cli docs +create --title "Weekly Report" --markdown "# Progress\n- Completed feature X"
+
+# 查看我的任务
+lark-cli task +get-my-tasks
+
+# 调 API 前查看参数结构和权限
+lark-cli schema im.messages.create
+
+# 快捷命令不够时直接调 OpenAPI
+lark-cli api GET /open-apis/calendar/v4/calendars
+```
+
+## 官方 Skills
+
+官方 CLI 提供一组 AI Agent Skills，覆盖消息、文档、多维表格、电子表格、日历、邮件、任务、云空间、通讯录、知识库、会议、白板等领域。
+
+安装：
+
+```bash
+npx skills add larksuite/cli -y -g
+```
+
+使用建议：
+
+- 处理飞书任务时优先用 `lark-task`。
+- 处理飞书文档时优先用 `lark-doc` 或 `lark-wiki`。
+- 处理多维表格时优先用 `lark-base`。
+- 处理消息和群聊时优先用 `lark-im`。
+- 处理陌生接口时用 `lark-openapi-explorer` 先查 API，再决定是否落到 CLI 或 MCP。
+
+## 官方 Lark OpenAPI MCP
+
+先在飞书开放平台或 Lark Open Platform 创建应用，拿到 App ID / App Secret，并按场景添加权限。如果需要用户身份访问，OAuth redirect URL 默认配置为：
+
+```txt
+http://localhost:3000/callback
+```
+
+基础 MCP 配置：
+
+```json
+{
+    "mcpServers": {
+        "lark-mcp": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@larksuiteoapi/lark-mcp",
+                "mcp",
+                "-a",
+                "<your_app_id>",
+                "-s",
+                "<your_app_secret>"
+            ]
+        }
+    }
+}
+```
+
+如果要以用户身份调用个人文档、消息等资源，先登录：
+
+```bash
+npx -y @larksuiteoapi/lark-mcp login -a <app_id> -s <app_secret>
+```
+
+然后在 MCP 配置里显式开启 OAuth：
+
+```json
+{
+    "mcpServers": {
+        "lark-mcp": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@larksuiteoapi/lark-mcp",
+                "mcp",
+                "-a",
+                "<your_app_id>",
+                "-s",
+                "<your_app_secret>",
+                "--oauth",
+                "--token-mode",
+                "user_access_token"
+            ]
+        }
+    }
+}
+```
+
+国际版 Lark 要加 domain：
+
+```json
+{
+    "mcpServers": {
+        "lark-mcp": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@larksuiteoapi/lark-mcp",
+                "mcp",
+                "-a",
+                "<your_app_id>",
+                "-s",
+                "<your_app_secret>",
+                "--domain",
+                "https://open.larksuite.com"
+            ]
+        }
+    }
+}
+```
+
+官方仓库提示它仍是 Beta，并且文件上传/下载、直接编辑云文档等能力有边界。实际做项目时，优先用 `lark-cli` 和官方 Skills 承接高频动作，再用 MCP 做补充探索。
+
+## 安全边界
+
+- 应用凭据和 OAuth token 只放本地密钥链、MCP 客户端配置或 secret 管理，不写入仓库。
+- 发送消息、更新文档、改多维表格记录前，先确认目标 ID 和写入内容。
+- 邮件、消息、文档正文都当作不可信输入处理，不让外部内容覆盖系统指令。
+- 批量写入前先用小范围样本验证。
+- 使用 `lark-cli schema` 查清参数结构，不猜字段名。
+
+## 官方文档入口
+
+- [Feishu CLI](https://feishu-cli.com/zh/)
+- [larksuite/cli](https://github.com/larksuite/cli)
+- [Feishu/Lark OpenAPI MCP](https://github.com/larksuite/lark-openapi-mcp)
