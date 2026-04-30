@@ -1,0 +1,349 @@
+---
+title: "Cloudflare Free"
+description: "Cloudflare 免费层里的建站、轻后端、存储、本地调试、邮件、内网访问和 AI 小工具操作路径"
+---
+
+<Note>
+    这页基于小墨同学 2026-04-29 的 X 帖 [Cloudflare
+    免费能力清单](https://x.com/legacyvps/status/2049357356912586780)
+    整理，并补上 Cloudflare
+    官方文档里的常用操作路径。正式上线前仍要按官方页面确认最新限额、计费和地区能力。
+</Note>
+
+Cloudflare 的免费层不只是 DNS 和 CDN。对个人站点、文档站、小工具、内网服务和早期 SaaS 来说，它更像一套可以从同一个控制台拼起来的基础设施：域名入口、静态部署、边缘 API、对象存储、轻量数据库、邮件转发、访问控制和 AI 推理。
+
+这页只放 Cloudflare 主线。EdgeOne、云效、飞书/Lark 已拆到独立页面：
+
+<CardGroup cols={3}>
+    <Card
+        title="EdgeOne 与 tccli"
+        icon="cloud"
+        href="/notes/edgeone-tccli-stack"
+    >
+        Tencent EdgeOne Pages、`edgeone` CLI、`tccli teo`、MCP 和 Skill。
+    </Card>
+    <Card
+        title="云效 DevOps"
+        icon="git-pull-request"
+        href="/notes/yunxiao-devops-stack"
+    >
+        云效 MCP、Codeup、Packages、流水线和工作项协作。
+    </Card>
+    <Card
+        title="Lark CLI 与飞书 MCP"
+        icon="message-circle"
+        href="/notes/lark-cli-mcp-stack"
+    >
+        飞书/Lark CLI、官方 Skills、OpenAPI MCP 和办公自动化。
+    </Card>
+</CardGroup>
+
+## 选型地图
+
+| 你要做什么                         | 推荐组合                                  | 第一步                                                     |
+| ---------------------------------- | ----------------------------------------- | ---------------------------------------------------------- |
+| 博客、文档站、个人主页、前端工具   | DNS + Pages + SSL/TLS                     | 把仓库接到 Pages，配置构建命令和输出目录                   |
+| 有表单、Webhook、轻量 API 的小产品 | Pages + Workers + D1/KV + Turnstile       | 先用 Workers 跑通一个 `/api`，再接存储和防刷               |
+| 图床、下载页、备份、小文件分发     | R2 + Workers + CDN                        | 先建 R2 bucket，再决定公开访问还是经 Worker 鉴权           |
+| NAS、家庭服务、测试后台            | Tunnel + Access                           | 先让 Tunnel 显示 `Healthy`，再加 Access 登录策略           |
+| AI 小工具或内部助手                | Pages + Workers + Workers AI + R2/D1      | 先用 Workers AI binding 跑通一次模型调用                   |
+| 本地调试和 Agent 辅助开发          | Wrangler + Local Explorer + `cf` 技术预览 | 先用 `wrangler dev`，再打开 `/cdn-cgi/explorer` 看本地数据 |
+| 自定义域名收信                     | Email Routing                             | 先创建转发地址并验证目标邮箱                               |
+
+## 工具选择
+
+截至 2026-04-30，Cloudflare 开发工具可以这样判断：
+
+| 工具           | 现在适合做什么                                                               | 当前判断                                      |
+| -------------- | ---------------------------------------------------------------------------- | --------------------------------------------- |
+| `wrangler`     | 创建、开发、部署 Workers，管理 D1、KV、R2、Pages、Queues、Workflows 等资源   | 主力工具，教程和生产流程优先用它              |
+| `npx cf`       | 体验 Cloudflare 正在重建的全平台 CLI 技术预览                                | 方向更大，但还早，不建议替代生产里的 Wrangler |
+| Local Explorer | 在本地浏览和编辑 Worker 绑定里的 KV、R2、D1、Durable Objects、Workflows 数据 | 已经能直接提升本地调试效率                    |
+
+`cf` 不是“已经比 Wrangler 更强”的现成替代品，更准确的说法是：Cloudflare 正在把 Wrangler 重建成覆盖整个 Cloudflare API 的统一 CLI，而 `npx cf` 是这个方向的技术预览。它的长期目标更大，尤其适合给 AI coding agent 提供更一致的命令接口；但当前只覆盖少量产品，正式项目仍然应该把 `wrangler` 作为主路径。
+
+可以马上用起来的是 Local Explorer。启动本地 Worker 后，按终端提示按 `e`，或直接打开：
+
+```txt
+http://localhost:8787/cdn-cgi/explorer
+```
+
+它会自动识别 `wrangler.jsonc` 里的 bindings。调试 D1 表结构、给 KV 塞测试数据、看 R2 本地对象、检查 Durable Object SQLite 存储或 Workflow 状态时，比反复写临时代码和 CLI 查询更直观。
+
+如果要让 AI agent 辅助本地调试，可以让它读取 Local Explorer 暴露的 OpenAPI：
+
+```bash
+curl http://localhost:8787/cdn-cgi/explorer/api
+```
+
+这只操作本地模拟资源，不会直接改 Cloudflare 远端数据。要改远端资源时，仍然要回到 Wrangler 命令、Dashboard 或 Cloudflare API，并明确区分 `--local` 和 `--remote`。
+
+## 路径一：静态站和文档站
+
+适合博客、文档、落地页、作品集、前端小工具。主线是：域名交给 Cloudflare，代码交给 GitHub/GitLab，Pages 自动构建。
+
+<Steps>
+	<Step title="接入域名">
+		在 Cloudflare 添加站点，把域名注册商里的 nameserver 改成 Cloudflare 给出的两个 nameserver。已有源站时，DNS 里保留对应的 `A`、`AAAA` 或 `CNAME` 记录。
+	</Step>
+	<Step title="开启 HTTPS">
+		如果有自己的源站，优先在 `SSL/TLS > Overview` 选择 `Full (strict)`，并确认源站 443 端口有有效证书。纯 Pages 项目通常不需要自己维护源站证书。
+	</Step>
+	<Step title="创建 Pages 项目">
+		进入 `Workers & Pages > Create application > Pages > Connect to Git`，授权 GitHub 或 GitLab，选择仓库和生产分支。Cloudflare 官方说明里提醒：Git integration 项目后续不能切换成 Direct Upload，所以一开始就要决定部署方式。
+	</Step>
+	<Step title="配置构建">
+		按框架填写 Build command 和 Build output directory。常见例子：
+
+    	```txt
+    	Vite: npm run build / dist
+    	Next.js 静态导出: npm run build / out
+    	Astro: npm run build / dist
+    	Mintlify 文档站: 通常交给 Mintlify 托管，不建议直接套 Pages
+    	```
+    </Step>
+    <Step title="绑定自定义域名">
+    	部署成功后进入 Pages 项目，添加 Custom domains。确认根域、`www`、预览域名的跳转关系，避免同一站点被多个 URL 分散访问。
+    </Step>
+
+</Steps>
+
+<Tip>
+    Cloudflare Pages 每次非生产分支提交都会生成预览部署，适合用在 PR
+    review。正式站点可以只把 `main` 或 `master` 作为生产分支。
+</Tip>
+
+## 路径二：小型 SaaS 或 API
+
+适合需要表单提交、Webhook、中转 API、简单账号数据、配置开关或后台任务的小项目。不要一上来就把所有产品都用上，先让 Workers 变成唯一 API 入口。
+
+<Steps>
+	<Step title="创建 Worker">
+		用 Cloudflare 官方的 C3 脚手架创建项目：
+
+    	```bash
+    	npm create cloudflare@latest -- my-api
+    	cd my-api
+    	npx wrangler dev
+    	```
+
+    	本地开发默认会给出类似 `http://localhost:8787` 的地址。确认返回正常后，再执行：
+
+    	```bash
+    	npx wrangler deploy
+    	```
+    </Step>
+    <Step title="打开 Local Explorer">
+    	本地 `wrangler dev` 启动后，在终端按 `e`，或打开 `http://localhost:8787/cdn-cgi/explorer`。这里能直接看本地 D1、KV、R2、Durable Objects 和 Workflows 的数据，适合确认 API 是否真的写入了预期状态。
+    </Step>
+    <Step title="接 D1：关系型数据">
+    	如果需要用户资料、订单、文章、任务记录这类结构化数据，用 D1：
+
+    	```bash
+    	npx wrangler@latest d1 create prod-my-app
+    	```
+
+    	按终端输出把 `d1_databases` binding 写进 `wrangler.jsonc`，或者在 Wrangler 提示时选择自动添加。初始化本地数据库时先用 `--local`：
+
+    	```bash
+    	npx wrangler d1 execute prod-my-app --local --file=./schema.sql
+    	npx wrangler d1 execute prod-my-app --local --command="SELECT * FROM users"
+    	```
+
+    	确认迁移没问题后，再对远端执行。不要把本地验证跳过。
+    </Step>
+    <Step title="接 KV：配置和缓存">
+    	如果是功能开关、用户偏好、短文本配置、低频更新缓存，用 KV：
+
+    	```bash
+    	npx wrangler kv namespace create APP_CONFIG
+    	```
+
+    	把输出里的 binding 加到 `wrangler.jsonc`：
+
+    	```json
+    	{
+    		"kv_namespaces": [
+    			{
+    				"binding": "APP_CONFIG",
+    				"id": "<BINDING_ID>"
+    			}
+    		]
+    	}
+    	```
+
+    	本地 `wrangler dev` 默认读写本地 KV；要操作远端数据时明确加 `--remote`。
+    </Step>
+    <Step title="接 Turnstile：表单防刷">
+    	在 Turnstile 创建 widget，拿到 sitekey 和 secret key。前端只负责生成 token；后端必须把 token 发到 Siteverify API 校验，不能只放一个前端 widget 就认为安全。
+
+    	```ts
+    	const body = await request.formData();
+    	const token = body.get("cf-turnstile-response");
+
+    	const verify = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+    		method: "POST",
+    		body: JSON.stringify({
+    			secret: env.TURNSTILE_SECRET_KEY,
+    			response: token
+    		}),
+    		headers: { "content-type": "application/json" }
+    	});
+
+    	const result = await verify.json();
+    	if (!result.success) {
+    		return new Response("invalid challenge", { status: 403 });
+    	}
+    	```
+    </Step>
+
+</Steps>
+
+## 路径三：内网服务和私有后台
+
+适合 NAS、Homelab、测试后台、临时演示环境、内部管理面板。核心原则是：Tunnel 负责连通，Access 负责谁能进。
+
+<Steps>
+	<Step title="创建 Tunnel">
+		进入 `Networking > Tunnels > Create Tunnel`，命名后选择服务器系统和架构。把页面生成的安装命令复制到服务器执行，等 Tunnel 状态变成 `Healthy`。
+	</Step>
+	<Step title="发布应用">
+		在 Tunnel 的 Routes 里添加 `Published application`：
+
+    	```txt
+    	Hostname: admin.example.com
+    	Service URL: http://localhost:8080
+    	```
+
+    	如果服务在同一台机器上，通常就是 `http://localhost:端口`；如果在内网另一台机器，填类似 `http://192.168.1.20:8080`。
+    </Step>
+    <Step title="加 Access 登录">
+    	进入 Zero Trust，添加 self-hosted application，把 application domain 指到 `admin.example.com`。再配置 policy，比如只允许自己的邮箱、GitHub 组织成员或 Google Workspace 用户访问。
+    </Step>
+    <Step title="收紧源站">
+    	确认 NAS 或后台服务没有直接暴露公网端口。能只让 `cloudflared` 访问的服务，就不要再开路由器端口转发。
+    </Step>
+
+</Steps>
+
+<Warning>
+    Quick Tunnel 可以用 `cloudflared tunnel --url http://localhost:8080`
+    临时暴露本地服务，但它更适合演示和调试，不适合长期生产入口。
+</Warning>
+
+## 能力模块
+
+### R2：对象存储
+
+适合图片、下载文件、日志归档、备份包、用户上传文件。先默认私有，再决定是否公开。
+
+```bash
+npx wrangler login
+npx wrangler r2 bucket create my-bucket
+npx wrangler r2 bucket list
+echo "Hello, R2!" > myfile.txt
+wrangler r2 object put my-bucket/myfile.txt --file ./myfile.txt
+wrangler r2 object get my-bucket/myfile.txt --file ./downloaded.txt
+```
+
+实践建议：
+
+- 做公开图片或下载页：可以配置 public bucket 或自定义域名，但要先想清楚缓存、盗链和删除策略。
+- 做用户上传：优先用 Workers 生成受控上传入口，不要把写权限凭据放到浏览器。
+- 做私有文件：用 Workers 校验登录态，再从 R2 读对象返回。
+
+### D1：轻量 SQL
+
+适合结构化数据和事务要求不高的轻量后端。把 schema 放进仓库，用 SQL 文件管理，别只在 Dashboard 手工改。
+
+```bash
+npx wrangler@latest d1 create prod-my-app
+npx wrangler d1 execute prod-my-app --local --file=./schema.sql
+npx wrangler d1 execute prod-my-app --local --command="SELECT COUNT(*) FROM users"
+```
+
+### KV：配置、缓存、开关
+
+适合“读多写少”的小数据，不适合需要强一致的库存、余额、订单状态。
+
+```bash
+npx wrangler kv namespace create APP_CONFIG
+npx wrangler kv key put --binding=APP_CONFIG "feature:onboarding" "enabled"
+npx wrangler kv key get --binding=APP_CONFIG "feature:onboarding" --text
+```
+
+### Email Routing：域名邮箱转发
+
+适合 `hi@example.com`、`support@example.com` 这类入口邮箱转发到已有邮箱。
+
+操作路径：
+
+1. 在 Cloudflare Dashboard 选择域名。
+2. 进入 `Email Routing`，创建 custom address。
+3. 填写目标邮箱，并在目标邮箱里点验证邮件。
+4. 确认 Cloudflare 自动添加的 MX/TXT 记录生效。
+5. 发一封测试邮件，看目标邮箱是否收到。
+
+限制要记住：Email Routing 只处理入站转发，不提供 SMTP，也不能直接用这个地址发信或回信。回信会从你的目标邮箱发出。
+
+### Workers AI：AI 小工具
+
+适合翻译、摘要、分类、轻量问答、内部助手。先用 Workers 跑通模型调用，再把前端接到 Pages。
+
+`wrangler.jsonc` 加 binding：
+
+```json
+{
+    "ai": {
+        "binding": "AI"
+    }
+}
+```
+
+Worker 里调用：
+
+```ts
+export default {
+    async fetch(request, env) {
+        const response = await env.AI.run("@cf/meta/llama-3.1-8b-instruct", {
+            prompt: "用一句话解释 Cloudflare Workers",
+        });
+
+        return Response.json(response);
+    },
+};
+```
+
+本地调试：
+
+```bash
+npx wrangler dev
+```
+
+注意：Workers AI 即使在本地开发时也会访问 Cloudflare 账号执行模型调用，可能产生用量计费；做公开接口时要加限流、登录或 Turnstile。
+
+## 上线前检查
+
+- DNS：根域、`www`、API 子域、后台子域是否都指向预期目标。
+- SSL/TLS：有源站时尽量使用 `Full (strict)`；避免 Flexible 模式造成回源明文或重定向循环。
+- 权限：R2 bucket、KV/D1 binding、Workers secret、Access policy 是否按最小权限配置。
+- 本地/远端：D1、KV、R2 调试时确认操作的是 `--local` 还是 `--remote`；Local Explorer 只改本地模拟资源。
+- 缓存：HTML、API、图片、下载文件的缓存策略要分开，不要把用户私有响应缓存到公共 CDN。
+- 表单：Turnstile 必须服务端校验；token 过期或重复使用要拒绝。
+- 邮件：Email Routing 只收不发；需要发信时另接 Resend、Postmark、Amazon SES 或专业邮箱。
+- 可观测性：至少看 Workers 日志、Pages 部署日志、Tunnel 健康状态和 Email Routing analytics。
+- 备份：D1 schema、R2 重要对象、Workers 配置和环境变量要有仓库或外部备份。
+
+## 官方文档入口
+
+- [Cloudflare Pages Git integration](https://developers.cloudflare.com/pages/get-started/git-integration/)
+- [Cloudflare Workers CLI guide](https://developers.cloudflare.com/workers/get-started/guide/)
+- [Building a CLI for all of Cloudflare](https://blog.cloudflare.com/cf-cli-local-explorer/)
+- [Cloudflare Workers Local Explorer](https://developers.cloudflare.com/workers/development-testing/local-explorer/)
+- [Cloudflare R2 CLI](https://developers.cloudflare.com/r2/get-started/cli/)
+- [Cloudflare D1 getting started](https://developers.cloudflare.com/d1/get-started/)
+- [Cloudflare Workers KV getting started](https://developers.cloudflare.com/kv/get-started/)
+- [Cloudflare Tunnel setup](https://developers.cloudflare.com/tunnel/setup/)
+- [Cloudflare Access self-hosted applications](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/self-hosted-public-app/)
+- [Cloudflare Turnstile getting started](https://developers.cloudflare.com/turnstile/get-started/)
+- [Cloudflare Workers AI with Wrangler](https://developers.cloudflare.com/workers-ai/get-started/workers-wrangler/)

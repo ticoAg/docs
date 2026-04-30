@@ -91,18 +91,51 @@
 					},
 					{
 						"group": "生态索引",
+						"root": "indexes/agent-ecosystem",
+						"expanded": true,
 						"pages": [
-							"indexes/agent-ecosystem",
-							"indexes/agent-cli",
-							"indexes/agent-orchestration",
-							"indexes/agent-frameworks",
-							"indexes/prompts",
-							"indexes/gateways",
-							"indexes/tools",
-							"indexes/mcp",
-							"indexes/context-engineering",
-							"indexes/skills",
-							"indexes/sandboxes"
+							{
+								"group": "智能体",
+								"icon": "robot",
+								"expanded": true,
+								"pages": [
+									"indexes/agent-cli",
+									"indexes/agent-orchestration",
+									"indexes/agent-frameworks"
+								]
+							},
+							{
+								"group": "能力层",
+								"icon": "wrench",
+								"expanded": true,
+								"pages": [
+									"indexes/tools",
+									"indexes/mcp",
+									"indexes/context-engineering",
+									"indexes/sandboxes",
+									"indexes/gateways"
+								]
+							},
+							{
+								"group": "规则 / 方法",
+								"icon": "sparkles",
+								"expanded": true,
+								"pages": [
+									"indexes/skills",
+									"indexes/skill-directory",
+									"indexes/prompts"
+								]
+							}
+						]
+					},
+					{
+						"group": "实用笔记",
+						"expanded": true,
+						"pages": [
+							"notes/cloudflare-free-stack",
+							"notes/edgeone-tccli-stack",
+							"notes/yunxiao-devops-stack",
+							"notes/lark-cli-mcp-stack"
 						]
 					}
 				]

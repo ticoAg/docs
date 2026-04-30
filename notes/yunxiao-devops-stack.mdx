@@ -1,0 +1,125 @@
+---
+title: "Yunxiao"
+description: "阿里云云效 MCP、Codeup、Packages、流水线和工作项协作的安装与使用路径"
+---
+
+云效这条线适合接研发流程：工作项、Codeup 仓库、MR、流水线、Packages 制品。当前官方主路径是云效 MCP；本地如果有非常高频、固定字段的工作项流程，可以再包一层脚本或 Skill。
+
+## 能做什么
+
+| 场景                               | 推荐能力                |
+| ---------------------------------- | ----------------------- |
+| 读取需求、Bug、任务上下文          | 云效 MCP 项目管理工具   |
+| 查询 Codeup 仓库、分支、文件树、MR | 云效 MCP 代码管理工具   |
+| 运行流水线、查看日志、查部署任务   | 云效 MCP 流水线工具     |
+| 查 Packages 仓库和制品版本         | 云效 MCP 制品仓库工具   |
+| 固定格式的工作项交付评论           | 本地脚本 / 自定义 Skill |
+
+本地 `DataPipe` 的可复用经验是：业务侧 SDK 放在独立 Codeup 仓库维护，通过云效 Packages PyPI 分发；消费侧固定版本安装，不再用 sibling path 或源码压缩包联调。
+
+## 官方 MCP
+
+前提条件：
+
+- Node.js `>= 16`
+- 云效个人访问令牌，按实际需要授予组织管理、项目协作、代码管理、流水线、制品仓库等权限
+- MCP 客户端，例如通义灵码、Cursor、Claude Code、Codex 或其他支持 MCP 的工具
+
+NPX 配置示例：
+
+```json
+{
+    "mcpServers": {
+        "yunxiao": {
+            "command": "npx",
+            "args": ["-y", "alibabacloud-devops-mcp-server"],
+            "env": {
+                "YUNXIAO_ACCESS_TOKEN": "<your-token>"
+            }
+        }
+    }
+}
+```
+
+Docker 配置示例：
+
+```json
+{
+    "mcpServers": {
+        "yunxiao": {
+            "command": "docker",
+            "args": [
+                "run",
+                "-i",
+                "--rm",
+                "-e",
+                "YUNXIAO_ACCESS_TOKEN",
+                "alibabacloud/alibabacloud-devops-mcp-server"
+            ],
+            "env": {
+                "YUNXIAO_ACCESS_TOKEN": "<your-token>"
+            }
+        }
+    }
+}
+```
+
+## 使用顺序
+
+接好 MCP 后，优先让 Agent 做读操作：
+
+1. 搜索项目和工作项，读取需求描述、字段、评论。
+2. 查询 Codeup 仓库、分支、文件树、MR。
+3. 查看流水线、运行记录、任务日志。
+4. 查看 Packages 仓库和制品版本。
+
+写操作要收紧权限和动作边界：
+
+- 创建/更新文件、分支、MR 前先让 Agent 明确仓库、分支和目标文件。
+- 运行流水线前先确认 pipeline、环境和变量。
+- 更新工作项状态前先确认目标状态，避免跨工作流误改。
+- 不把访问令牌、私有仓库 URL、制品源 token 写进回复或仓库文档。
+
+## 本地经验：工作项脚本 + Packages
+
+更稳的模式是：把“读取工作项、提炼需求、交付评论”这种固定动作包成脚本或 Skill，把云效 MCP 用在更宽的探索场景。
+
+推荐分层：
+
+| 场景                               | 工具                                      |
+| ---------------------------------- | ----------------------------------------- |
+| 读一个工作项、写一条交付评论       | 本地脚本 / 自定义 Skill                   |
+| 查项目、仓库、MR、流水线、Packages | 云效 MCP                                  |
+| 从业务仓库消费 SDK 包              | 云效 Packages PyPI / npm / Maven 等制品源 |
+
+Packages 的使用原则是：业务侧固定版本安装制品，不通过 sibling path 或源码压缩包联调。Python SDK 可以写成：
+
+```bash
+pip install --index-url "https://packages.aliyun.com/<org>/pypi/<repo>/simple" \
+	<package-name>==<version>
+```
+
+实际项目里把 `<org>`、`<repo>`、包名和 token 都放到私有配置或 CI secret，不写进文档正文和仓库。
+
+## Agent 工作流模板
+
+适合从云效工作项驱动一次开发：
+
+1. 读取工作项标题、描述、评论、字段和验收条件。
+2. 用一句话复述范围，列出不做什么。
+3. 在本地仓库实现并运行最贴近的测试。
+4. 创建 MR 或交付 diff。
+5. 在云效工作项写一条短评论，说明已完成内容和验证命令。
+
+交付评论保持短：
+
+```markdown
+已完成 `<area>` 的调整，当前已交付验证。主要变化是 <one-sentence summary>。
+```
+
+不要把长日志、密钥、私有路径或内部推理粘到云效评论里。
+
+## 官方文档入口
+
+- [云效 MCP 工具使用说明](https://help.aliyun.com/zh/yunxiao/developer-reference/cloud-effect-mcp-tool-instructions)
+- [aliyun/alibabacloud-devops-mcp-server](https://github.com/aliyun/alibabacloud-devops-mcp-server)

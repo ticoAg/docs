@@ -1,0 +1,515 @@
+---
+title: "技能目录明细"
+description: "提取以仓库内 skills/ 目录为核心的 GitHub 仓库，整理其中各个 skill 的用途"
+---
+
+<Note>
+	返回技能索引：[/indexes/skills](/indexes/skills)。本页抓取时间：2026-04-30。
+</Note>
+
+这里展开的是仓库中存在 `skills/**/SKILL.md`、`skill/**/SKILL.md` 或类似 agent 技能目录的内容，并把每个 skill 的用途压缩成一行。递归扫描会覆盖 `skills/.curated`、`.claude/skills`、`.codex/skills`、`.gemini/skills`、`plugins/*/skills` 等隐藏或嵌套路径；测试 fixture、重复打包副本和超大合集单独归到页尾。
+
+## 工作流 / 方法论
+
+### obra/superpowers
+
+- `brainstorming` — 创意、功能、组件或行为改动前先澄清意图、需求和设计方向。
+- `dispatching-parallel-agents` — 面对两个以上彼此独立、无顺序依赖的任务时，拆给并行代理执行。
+- `executing-plans` — 已有书面实现计划时，按检查点执行计划并接受审查。
+- `finishing-a-development-branch` — 实现和测试完成后，决定合并、PR、清理等收尾路径。
+- `receiving-code-review` — 收到代码评审意见后，先验证和分析，再决定如何处理。
+- `requesting-code-review` — 完成任务或重大功能后，请求评审以确认满足需求。
+- `subagent-driven-development` — 当前会话里按独立任务使用子代理推进实现。
+- `systematic-debugging` — 遇到 bug、测试失败或异常行为时，先系统排查再修复。
+- `test-driven-development` — 实现功能或修 bug 前，先写失败测试，再实现。
+- `using-git-worktrees` — 需要隔离工作区时，创建和管理 git worktree。
+- `using-superpowers` — 会话开始时查找并调用适用技能的总入口规则。
+- `verification-before-completion` — 声称完成、修复或通过前，先运行验证命令并保留证据。
+- `writing-plans` — 多步骤任务动手前，先把方案写成可执行计划。
+- `writing-skills` — 创建、修改或验证技能时使用。
+
+### OthmanAdi/planning-with-files
+
+- `planning-with-files` — Manus 风格的文件化规划系统，创建 `task_plan.md`、`findings.md`、`progress.md` 跟踪复杂任务。
+- `planning-with-files-zh` — `planning-with-files` 的简体中文版本。
+- `planning-with-files-zht` — `planning-with-files` 的繁体中文版本。
+- `planning-with-files-ar` — `planning-with-files` 的阿拉伯语版本。
+- `planning-with-files-de` — `planning-with-files` 的德语版本。
+- `planning-with-files-es` — `planning-with-files` 的西班牙语版本。
+
+## 通用技能集合
+
+### anthropics/skills
+
+- `algorithmic-art` — 用 p5.js、随机种子和交互参数生成算法艺术、粒子系统和 flow fields。
+- `brand-guidelines` — 将 Anthropic 官方品牌色、字体和视觉规范应用到文档或 artifact。
+- `canvas-design` — 创建海报、静态视觉设计、艺术图和可导出的 PNG / PDF。
+- `claude-api` — 构建、调试、优化 Claude API / Anthropic SDK 应用，并处理模型迁移。
+- `doc-coauthoring` — 协作撰写文档、提案、技术规格和决策文档。
+- `docx` — 创建、读取、编辑和格式化 Word `.docx` 文档。
+- `frontend-design` — 构建高质量前端页面、组件、落地页、dashboard 和 Web artifact。
+- `internal-comms` — 撰写内部沟通内容，例如状态报告、领导更新和项目同步。
+- `mcp-builder` — 创建高质量 MCP server，用 Python FastMCP 或 Node / TypeScript 集成外部服务。
+- `pdf` — 读取、生成、拆分、合并、旋转、加水印、填表和处理 PDF。
+- `pptx` — 创建、读取、解析和编辑 PowerPoint `.pptx` 演示文稿。
+- `skill-creator` — 创建、改进、评估和优化 Claude skills。
+- `slack-gif-creator` — 创建适合 Slack 的动画 GIF，并检查尺寸、帧率和循环效果。
+- `theme-factory` — 给幻灯片、文档、报告、HTML 页面等 artifact 应用或生成主题。
+- `web-artifacts-builder` — 用 React、Tailwind、shadcn/ui 构建复杂 Claude HTML artifacts。
+- `webapp-testing` — 用 Playwright 测试本地 Web 应用、截图、查看日志和调试 UI 行为。
+- `xlsx` — 读取、编辑、清洗、计算、格式化和生成电子表格文件。
+
+### openai/skills
+
+- `aspnet-core` — 按官方 .NET 指南构建、审查、重构 ASP.NET Core / Blazor / MVC / Web API 应用。
+- `chatgpt-apps` — 构建和排查 ChatGPT Apps SDK 应用，连接 MCP server 与 widget UI。
+- `cli-creator` — 基于 API 文档、OpenAPI、SDK、脚本或 Web 管理后台生成可复用 CLI。
+- `cloudflare-deploy` — 将应用和基础设施部署到 Cloudflare Workers、Pages 等平台服务。
+- `doc` — 读取、创建或编辑 `.docx`，尤其关注格式和版式保真。
+- `figma-code-connect-components` — 用 Code Connect 建立 Figma 组件与代码组件的映射。
+- `figma-create-design-system-rules` — 为项目生成设计系统规则和前端视觉约束。
+- `figma-create-new-file` — 创建新的 Figma / FigJam 文件。
+- `figma-generate-design` — 将应用页面、视图或多区块布局写入 Figma。
+- `figma-generate-library` — 从代码库生成或更新 Figma 设计系统、变量和组件库。
+- `figma-implement-design` — 从 Figma 设计生成高保真生产级 UI 代码。
+- `figma-use` — 调用 `use_figma` 工具前的强制前置技能。
+- `figma` — 通过 Figma MCP 获取设计上下文、截图、变量、资产并转成代码。
+- `gh-address-comments` — 用 `gh` 读取当前分支 PR 的 review / issue 评论并协助处理。
+- `gh-fix-ci` — 调试 GitHub Actions PR 检查失败，先总结日志和修复计划。
+- `jupyter-notebook` — 创建或编辑 Jupyter Notebook，用于实验、探索和教程。
+- `linear` — 读取、创建和更新 Linear issue、项目和团队工作流。
+- `migrate-to-codex` — 将其他工具的指令文件、skills、agents、MCP 配置迁移到 Codex。
+- `netlify-deploy` — 使用 Netlify CLI 部署、托管、链接站点或仓库。
+- `notion-knowledge-capture` — 将对话、笔记和决策沉淀为 Notion wiki、FAQ、how-to 或决策页。
+- `notion-meeting-intelligence` — 结合 Notion 上下文准备会议材料、议程和预读材料。
+- `notion-research-documentation` — 汇总多个 Notion 来源，生成带引用的研究文档、简报或对比报告。
+- `notion-spec-to-implementation` — 把 Notion PRD / spec 转为实现计划、任务和进度追踪。
+- `openai-docs` — 查询 OpenAI 官方文档、模型选择和迁移指导。
+- `pdf` — 读取、生成或审查 PDF，重视渲染和版式验证。
+- `playwright-interactive` — 通过 `js_repl` 持久浏览器 / Electron 交互调试 UI。
+- `playwright` — 从终端自动化真实浏览器，做导航、表单、截图、数据抽取和 UI 调试。
+- `render-deploy` — 分析代码库并生成 Render Blueprint，辅助部署到 Render。
+- `screenshot` — 获取桌面、应用窗口或指定区域的系统截图。
+- `security-best-practices` — 对语言 / 框架做安全最佳实践审查和改进建议。
+- `security-ownership-map` — 分析代码库安全 ownership、bus factor、敏感代码归属并导出数据。
+- `security-threat-model` — 基于仓库生成威胁模型、信任边界、资产、攻击路径和缓解措施。
+- `sentry` — 使用 Sentry CLI 只读查询 issue、event 和生产错误概况。
+- `speech` — 使用 OpenAI Audio API 做文本转语音、旁白和批量语音生成。
+- `transcribe` — 转录音视频，支持说话人区分和已知说话人提示。
+- `vercel-deploy` — 部署应用或网站到 Vercel，生成预览或生产链接。
+- `winui-app` — 用 C#、Windows App SDK 和 WinUI 3 创建、设计和开发桌面应用。
+- `yeet` — 用户明确要求时，一次性 stage、commit、push 并创建 GitHub PR。
+- `imagegen` — 生成或编辑位图图片、插画、纹理、sprite、mockup 和透明背景素材。
+- `plugin-creator` — 创建 Codex plugin 目录、`plugin.json` 和基础文件结构。
+- `skill-creator` — 创建或更新 Codex skill 的指导技能。
+- `skill-installer` — 从 `openai/skills` curated 列表或 GitHub repo/path 安装 Codex skills。
+
+### vercel-labs/agent-skills
+
+- `vercel-composition-patterns` — 指导可扩展 React 组合模式和组件重构。
+- `deploy-to-vercel` — 将应用或网站部署到 Vercel，并处理预览 / 生产发布。
+- `vercel-react-best-practices` — 按 Vercel 工程实践优化 React / Next.js 性能。
+- `vercel-react-native-skills` — React Native / Expo 移动应用性能和工程最佳实践。
+- `vercel-react-view-transitions` — 使用 React View Transition API 实现页面和组件过渡动画。
+- `vercel-cli-with-tokens` — 使用 token 鉴权操作 Vercel CLI、部署项目和管理环境变量。
+- `web-design-guidelines` — 审查 UI 代码是否符合 Web Interface Guidelines、可访问性和 UX 规则。
+
+### vercel-labs/skills
+
+- `find-skills` — 帮用户发现、检索和安装适合当前任务的 agent skills。
+
+### bytedance/deer-flow
+
+- `academic-paper-review` — 审阅、分析、批判或总结论文、预印本和科研文章。
+- `chart-visualization` — 自动选择图表类型并生成数据可视化图片。
+- `claude-to-deerflow` — 通过 HTTP API 与 DeerFlow 平台对话、管理线程、模型、技能和文件。
+- `code-documentation` — 为代码、API、库和仓库生成 README、API 文档、架构说明和开发指南。
+- `consulting-analysis` — 生成市场、消费者、品牌、财务、行业、竞品和投资尽调类专业分析报告。
+- `data-analysis` — 分析 Excel / CSV，生成统计、汇总、透视表、SQL 查询和结构化探索结果。
+- `deep-research` — 对需要联网研究的问题执行多角度深度研究。
+- `find-skills` — 帮用户发现和安装适合当前任务的 agent skills。
+- `frontend-design` — 生成高质量前端页面、组件、应用和视觉设计。
+- `github-deep-research` — 对 GitHub 仓库做多轮深度研究、时间线复盘、竞品分析和指标报告。
+- `image-generation` — 生成角色、场景、产品或其他视觉图片。
+- `newsletter-generation` — 生成 newsletter、邮件摘要、行业简报和 curated content。
+- `podcast-generation` — 将文本内容转为双主持人对话式播客音频。
+- `ppt-generation` — 生成图文丰富的 PowerPoint 演示文稿。
+- `skill-creator` — 创建、编辑、评估和优化技能。
+- `surprise-me` — 动态组合已有技能，生成意外、有趣的展示效果。
+- `systematic-literature-review` — 对多个学术论文做系统综述、survey、annotated bibliography 和交叉比较。
+- `vercel-deploy` — 部署网站或应用到 Vercel，并返回可 claim 的预览链接。
+- `video-generation` — 根据结构化 prompt 和参考图生成视频。
+- `web-design-guidelines` — 审查 UI 代码的设计规范、可访问性和 UX 问题。
+
+### mcollina/skills
+
+- `documentation` — 按 Diátaxis 框架编写、重组和审查技术文档。
+- `fastify-best-practices` — 指导 Fastify / Node.js 后端和 REST API 开发。
+- `init` — 为仓库创建或优化高信号、低噪声的 `AGENTS.md`。
+- `linting-neostandard-eslint9` — 配置 ESLint v9 flat config 和 neostandard，并迁移旧配置。
+- `node` — Node.js + TypeScript 项目实践，包括异步、错误、流、模块、测试、性能等。
+- `nodejs-core` — 调试原生模块、V8 性能、node-gyp、N-API、libuv 和崩溃问题。
+- `oauth` — 在 Fastify 中实现 OAuth 2.0 / 2.1 授权流、PKCE、JWT 和 token 管理。
+- `octocat` — 处理包含 GitHub URL 的任务，使用 `gh` 做 issue、PR、commit、release 等操作。
+- `skill-optimizer` — 优化 AI skills 的触发、清晰度、上下文成本和跨模型可靠性。
+- `snipgrapher` — 生成高质量代码截图、SVG、WebP 和主题化 snippet 图片。
+- `typescript-magician` — 设计复杂泛型、类型守卫、工具类型并解决 TypeScript 类型问题。
+
+## 代码代理 / 项目维护技能
+
+### openai/codex
+
+- `babysit-pr` — 持续看护 GitHub PR，轮询评审、CI、mergeability 并处理可自动修复的问题。
+- `code-breaking-changes` — 代码评审时识别和说明 breaking changes 风险。
+- `code-review-change-size` — 按变更规模指导代码评审，尤其关注超大 diff。
+- `code-review-context` — 评估模型可见上下文是否足以支撑可靠评审。
+- `code-review-testing` — 审查测试覆盖、测试设计和缺失验证路径。
+- `code-review` — 对 PR 做最终代码评审。
+- `codex-bug` — 诊断 `openai/codex` issue，验证是否为真实 bug 并给出下一步。
+- `codex-issue-digest` — 按标签、时间窗口和功能区域汇总 Codex issue。
+- `codex-pr-body` — 更新一个或多个 PR 的标题和正文。
+- `remote-tests` — 使用远程执行器运行测试。
+- `test-tui` — 交互式测试 Codex TUI。
+
+### just-every/code
+
+- `babysit-pr` — 看护 PR 的 CI、评审评论和合并状态，并处理可自动修复问题。
+- `code-breaking-changes` — 在评审中识别破坏性变更。
+- `code-review-change-size` — 按 diff 规模给出评审策略。
+- `code-review-context` — 判断评审所需上下文是否充分。
+- `code-review-testing` — 审查测试与验证策略。
+- `code-review` — 对 PR 做最终代码评审。
+- `codex-bug` — 诊断 Codex 相关 bug report。
+- `codex-pr-body` — 更新 PR 标题和正文。
+- `remote-tests` — 通过远程执行器运行测试。
+- `test-tui` — 交互式测试 TUI。
+
+### google-gemini/gemini-cli
+
+- `async-pr-review` — 启动或查询异步 PR review。
+- `behavioral-evals` — 创建、运行、修复和晋升行为评测，用于验证 agent 决策逻辑。
+- `ci` — 面向 Gemini CLI 的快速失败 CI 调试和验证技能。
+- `code-reviewer` — 审查本地变更或 PR 代码。
+- `docs-changelog` — 编写和维护文档 changelog。
+- `docs-writer` — 编写、审查和编辑 Gemini CLI 文档。
+- `github-issue-creator` — 创建结构化 GitHub issue。
+- `pr-address-comments` — 处理当前分支上的 GitHub PR 评论。
+- `pr-creator` — 创建 GitHub pull request。
+- `review-duplication` — 在评审中查找重复实现、重复轮子和未复用共享工具的问题。
+- `string-reviewer` — 审查用户可见文案的清晰度、实用性、简洁性和风格。
+- `skill-creator` — 创建或更新 Gemini CLI skills。
+
+### aaif-goose/goose
+
+- `code-review` — 对 Goose 相关改动进行代码评审。
+- `create-app-e2e-test` — 为 Goose 桌面端创建基于 Tauri app test driver 的端到端 UI 测试。
+- `create-pr` — 为 Goose 项目创建 pull request。
+- `edge-case-finder` — 查找功能或实现中的边界条件和遗漏场景。
+
+### Agenta-AI/agenta
+
+- `add-announcement` — 向 Agenta 侧栏 banner 系统添加 changelog、功能公告和推广卡片。
+- `create-changelog-announcement` — 创建 changelog 文档页、侧栏公告卡片并完成发布流程。
+- `update-api-docs` — 从生产环境 OpenAPI spec 重新生成 API reference 文档。
+- `update-llm-model-list` — 对照 LiteLLM registry 审计和更新支持的 LLM 模型列表。
+- `write-social-announcement` — 为 LinkedIn、X 和 Slack 撰写真诚、不像 AI 模板的社媒公告。
+- `resolve-findings` — 根据发现项优先级实现修复、测试或文档变更。
+- `scan-codebase` — 扫描代码和文档，把验证观察与测试缺口转为 findings。
+- `sync-findings` — 同步本地 review artifact 和 GitHub PR 状态中的 findings。
+- `test-codebase` — 运行或检查验证路径，并把失败、回归和覆盖缺口转为 findings。
+- `triage-findings` — 协调 scan / test / sync，整理 findings 并生成可执行计划。
+
+### rtk-ai/rtk
+
+- `code-simplifier` — 审查 RTK Rust 代码，去掉过度工程和不必要分配。
+- `design-patterns` — 在 RTK 中应用 Rust newtype、Builder、RAII、Trait Objects、状态机等模式。
+- `issue-triage` — 审计、分类、去重和评论 RTK issue。
+- `performance` — 优化 CLI 启动时间、内存使用和 token 节省效果。
+- `pr-review` — 按复杂度批量审查 RTK PR。
+- `pr-triage` — 审计和深度评审 RTK PR，并草拟 review comments。
+- `repo-recap` — 汇总 repo 的 PR、issue 和 release，生成团队 recap。
+- `rtk-tdd` — 为 RTK Rust 开发执行 Red / Green / Refactor TDD。
+- `rtk-triage` — 综合 issue triage 和 PR triage，发现覆盖缺口和冲突。
+- `security-guardian` — 审查 RTK CLI 的命令注入、shell escaping 和 hook 安全。
+- `ship` — 执行 build、commit、push 和 version bump 的发布流程。
+- `tdd-rust` — 为 RTK filter 开发执行 Rust TDD、fixture 和 snapshot 测试。
+
+### stagewise-io/stagewise
+
+- `caveman` — 用极简表达压缩沟通 token，同时保持技术准确性。
+- `copywriting` — 编写或改写 landing、pricing、feature、about 等页面营销文案。
+- `create-skill` — 按最佳实践创建或更新 agent skill。
+- `karton-best-practices` — 优化使用 Karton state 的 React 组件，减少重渲染和性能问题。
+- `prompt-optimization` — 构建、审查和压缩系统 prompt 与 prompt 模板。
+- `stage-ui-design-system` — 使用 Stagewise UI tokens、主题和组件库实现界面。
+- `vercel-react-best-practices` — 按 Vercel React / Next.js 性能实践审查和重构代码。
+- `Debug` — 通过本地日志文件做深入调试。
+- `Implement` — 执行最近生成的实现计划。
+- `Learn` — 创建、提取或更新 skill。
+- `Plan` — 编码前生成结构化实现计划。
+- `Preview` — 在对话中创建交互式设计预览。
+
+### ktnyt/cclsp
+
+- `architecture` — 通过 traits / interfaces 和依赖倒置设计可安全替换的模块边界。
+- `hands-on-test` — 使用 Playwright CLI 手动测试 Web 应用并产出报告。
+- `playwright-cli` — 自动化浏览器交互、表单、截图、Web 测试和数据提取。
+- `security-review` — 对代码做安全评审。
+
+### microsoft/playwright
+
+- `playwright-dev` — 开发 Playwright API、MCP tools、CLI 命令和 vendor dependency。
+- `playwright-devops` — 调试 Playwright CI、workflow 和 release 运维问题。
+- `playwright-cli` — 自动化浏览器、测试网页和处理 Playwright tests。
+
+### 0xdesign/design-plugin
+
+- `design-lab` — 通过设计访谈生成 5 个 UI 方案，收集反馈并输出实现计划。
+
+## 中文 / 本地工作流技能
+
+### rookie-ricardo/erduo-skills
+
+- `ak-rss-digest` — 从固定 RSS / Atom 源生成中文阅读摘要，偏 AI agent、前沿 AI 评论和高信号文章。
+- `daily-news-report` — 按预设 URL 抓取内容、筛选高质量技术信息并生成每日 Markdown 报告。
+- `gemini-watermark-remover` — 用反向 alpha blending 去除 Gemini 图片右下角可见水印。
+- `transcript-polisher` — 将访谈、演讲、播客、会议等语音转录文本整理成可读文章。
+- `translate-polisher` — 用“分析、初译、审校、终稿”流程做中英 / 中日双向精翻。
+- `web-to-markdown` — 按来源策略抓取网页并清洗成 Markdown。
+
+### larksuite/cli
+
+- `lark-approval` — 操作飞书审批实例和审批任务。
+- `lark-attendance` — 查询飞书考勤打卡记录。
+- `lark-base` — 操作飞书多维表格 Base，包括搜索、建表、字段、记录、视图、表单和仪表盘。
+- `lark-calendar` — 管理飞书日历、日程、参会人、忙闲状态和会议室预定。
+- `lark-contact` — 将姓名 / 邮箱解析为 open_id，或用 open_id 反查人员信息。
+- `lark-doc` — 创建、读取、搜索和编辑飞书云文档，支持 DocxXML / Markdown 和局部读取。
+- `lark-drive` — 管理飞书云空间文件、文件夹、上传下载、权限、评论和在线文档导入。
+- `lark-event` — 订阅和消费飞书实时事件，例如消息、reaction、群成员变化。
+- `lark-im` — 发送、回复、搜索飞书消息，管理群聊、成员、图片、文件和表情回复。
+- `lark-mail` — 起草、发送、回复、转发、读取和搜索飞书邮箱邮件。
+- `lark-markdown` — 查看、创建、上传和编辑飞书 Markdown 文件。
+- `lark-minutes` — 查询、下载和整理飞书妙记、总结、待办、章节和音视频。
+- `lark-okr` — 管理飞书 OKR 周期、目标、关键结果、对齐关系和进展。
+- `lark-openapi-explorer` — 探索未被 CLI 封装的飞书原生 OpenAPI。
+- `lark-shared` — 飞书 CLI 基础配置、登录、身份切换、权限和 scope 管理。
+- `lark-sheets` — 创建、读取、写入、搜索、导出飞书电子表格。
+- `lark-skill-maker` — 把飞书 API 操作封装为可复用自定义 Skill。
+- `lark-slides` — 创建、读取和编辑飞书幻灯片。
+- `lark-task` — 管理飞书任务、清单、子任务、协作成员和任务智能体。
+- `lark-vc` — 查询历史视频会议记录、会议总结、待办、章节和逐字稿。
+- `lark-whiteboard` — 查询、导出和编辑飞书画板，支持 DSL、PlantUML、Mermaid 等结构化表达。
+- `lark-wiki` — 管理飞书知识库空间、成员、节点层级和知识库文档组织。
+- `lark-workflow-meeting-summary` — 汇总指定时间范围内的会议纪要并生成结构化报告。
+- `lark-workflow-standup-report` — 汇总指定日期的日程和未完成任务，生成站会 / 日程摘要。
+
+## 智能体 / 编排工作流技能
+
+### stellarlinkco/myclaude
+
+- `browser` — 使用 Chrome DevTools Protocol 做浏览器自动化、截图、DOM 选择和页面交互。
+- `codeagent` — 用 codeagent-wrapper 调度 Codex、Claude、Gemini、OpenCode 等后端执行代码任务。
+- `dev` — 极轻量端到端开发流程，包含需求澄清、后端选择、并行执行和测试覆盖要求。
+- `do` — `/do` 触发的五阶段结构化开发流程：理解、澄清、设计、实现、完成。
+- `harness` — 面向多会话自治任务的进度 checkpoint、失败恢复和依赖管理。
+- `omo` — 面向代码分析、bug 调查、修复计划和实现的多智能体编排配方。
+- `product-requirements` — 交互式产品需求澄清、PRD 生成和质量评分。
+- `prototype-prompt-generator` — 为 Web / Mobile UI 原型生成结构化高密度 prompt。
+- `skill-install` — 从 GitHub 安装 Claude skills，并进行安全扫描。
+- `sparv` — Specify / Plan / Act / Review / Vault 的轻量 SPARV 工作流。
+- `test-cases` — 从 PRD 或需求生成覆盖功能、边界、错误处理和状态转换的测试用例。
+
+## MCP / 文档与浏览器工具技能
+
+### ChromeDevTools/chrome-devtools-mcp
+
+- `a11y-debugging` — 使用 Chrome DevTools MCP 按 web.dev 指南调试和审计可访问性。
+- `chrome-devtools-cli` — 编写 shell 脚本或命令，通过 CLI 自动化 Chrome DevTools 任务。
+- `chrome-devtools` — 使用 Chrome DevTools MCP 调试网页、自动化浏览器、分析性能和检查网络请求。
+- `debug-optimize-lcp` — 排查和优化 LCP、页面加载慢和 Core Web Vitals 问题。
+- `memory-leak-debugging` — 诊断 JavaScript / Node.js 内存泄漏、OOM 和 heapsnapshot 问题。
+- `troubleshooting` — 排查 Chrome DevTools MCP 连接、目标页面和 server 初始化失败。
+
+### browser-use/browser-use
+
+- `browser-use` — 自动化网页导航、表单填写、截图、数据抽取和 Web 测试。
+- `cloud` — 使用 Browser Use Cloud REST API / SDK、云会话、profile 和认证。
+- `open-source` — 使用开源 `browser_use` Python 库配置 Agent、Browser、Tools 和自定义工具。
+- `remote-browser` — 在无 GUI sandbox 里控制本地浏览器，并处理远程网页交互和隧道访问。
+
+### epiral/bb-browser
+
+- `bb-browser` — 复用浏览器登录态访问公开或私有页面，执行抓取、表单、提取和录制。
+- `bb-browser-openclaw` — 把 Twitter、Reddit、GitHub、YouTube、知乎、Bilibili 等网站转成 CLI 命令。
+
+### vercel-labs/agent-browser
+
+- `agent-browser` — 面向 AI agent 的浏览器自动化 CLI，用于导航、点击、表单、截图和数据提取。
+
+### PrefectHQ/fastmcp
+
+- `fastmcp-client-cli` — 用 `fastmcp list` / `fastmcp call` 发现 MCP server 工具并调用它们。
+
+### upstash/context7
+
+- `context7-cli` — 使用 `ctx7` CLI 获取库文档、管理 AI coding skills，并配置 Context7 MCP。
+- `context7-mcp` — 在涉及库、框架、API 参考或代码示例时，通过 Context7 MCP 获取最新文档。
+- `find-docs` — 按库名或主题查找可被 Context7 使用的文档来源。
+
+### better-auth/better-icons
+
+- `better-icons` — 搜索 200+ Iconify 图标库并获取 SVG，也可作为 MCP server 给 agent 使用。
+
+### schpet/linear-cli
+
+- `linear-cli` — 用命令行管理 Linear issues，便于自动化 issue 查询、创建和更新。
+
+### includewudi/fast-edit
+
+- `api` — 说明 fast-edit 的核心命令与 API 用法。
+- `architecture` — 解释 V0 / V1 engine、scheduler、PagedAttention 等架构。
+- `configuration` — 说明 fast-edit 的配置项和运行参数。
+- `development` — 记录开发流程、测试方式和发布检查。
+- `formats` — 说明 `paste`、`write`、`generate` 等命令的 JSON 返回格式。
+- `large-file` — 指导大文件生成、`fast-generate` 和分段 heredoc。
+- `outline-apply` — 使用 Python AST 做符号级 outline、替换、删除和插入。
+- `recover` — 从 OpenCode Session 恢复文件内容。
+- `shell-safety` — 多语言 Shell 转义安全矩阵和最佳实践。
+- `timer` — Debug 端到端计时模式。
+- `workflows` — 汇总粘贴保存、大文件生成、编辑验证等典型工作流。
+
+## 上下文 / 知识库技能
+
+### Tencent/WeKnora
+
+- `引用生成器` — 为知识库内容生成规范参考文献和来源引用。
+- `数据处理器` — 对知识库检索结果做统计、转换、提取、分析和报告生成。
+- `文档协作` — 引导用户协作撰写文档、提案、技术规范和决策文档。
+- `文档分析器` — 分析文档结构、提取关键信息、识别文档类型和评估内容质量。
+- `openmaic-classroom` — 将 RAG 检索结果或 PDF 文档转换成 OpenMAIC 互动课程。
+
+### agenticnotetaking/arscontexta
+
+- `add-domain` — 为现有知识系统新增领域，并生成领域配置、文件夹、模板和词汇。
+- `architect` — 基于健康报告和研究依据，为知识系统提出架构演进建议。
+- `ask` — 查询内置研究知识图谱，获得方法论层面的结构化答案。
+- `health` — 对 vault 做 schema、孤儿节点、链接、边界、吞吐、MOC 等健康诊断。
+- `help` — 根据当前 vault 状态给出命令发现、上下文帮助和下一步建议。
+- `recommend` — 根据使用场景、约束和目标给出知识系统架构建议。
+- `reseed` — 在结构漂移后，从原则重新推导并重构知识系统。
+- `setup` — 通过对话脚手架生成完整知识系统和配置。
+- `tutorial` — 用互动教程带用户创建真实内容并理解知识系统用法。
+- `upgrade` — 根据研究图谱更新已有知识系统的技能和方法论。
+
+## 沙盒 / 运行时技能
+
+### alibaba/OpenSandbox
+
+- `troubleshoot-sandbox` — 通过日志、inspect、events、summary 等诊断 OOM、崩溃、镜像拉取和网络问题。
+
+### volcengine/OpenViking
+
+- `cron` — 安排提醒和周期性任务。
+- `github-proxy` — 使用 GitHub proxy 加速 clone、release、raw 和 archive 下载。
+- `github` — 用 `gh` CLI 操作 issue、PR、CI run 和 GitHub API。
+- `opencode` — 监控和管理 OpenCode 任务。
+- `skill-creator` — 创建或更新 AgentSkills。
+- `summarize` — 从 URL、播客和本地文件提取文本或生成摘要。
+- `tmux` — 远程控制 tmux session，发送按键并读取 pane 输出。
+- `weather` — 获取当前天气和预报。
+- `openviking-memory` — 安装并使用 OpenViking 长期记忆插件。
+- `openviking` — 查询已索引代码库、外部库或框架的上下文。
+- `ov-add-data` — 向 OpenViking Context Database 添加文件、URL 或外部知识。
+- `ov-search-context` — 从 OpenViking 中检索 memory、skill 和 resource。
+- `ov-server-operate` — 配置、安装、启动、停止和清理 OpenViking 服务。
+
+## 前端 / 设计技能
+
+### Leonxlnx/taste-skill
+
+- `brandkit` — 生成高端品牌规范板、logo 系统、identity deck 和视觉世界提案。
+- `industrial-brutalist-ui` — 生成工业 / brutalist 风格的高对比、机械感、数据密集 UI。
+- `gpt-taste` — 高级 UX/UI 与 GSAP motion 规则集，强调页面结构、排版、随机化和动画质量。
+- `image-to-code` — 先生成设计参考图，再分析并实现尽量匹配图片的网站。
+- `imagegen-frontend-mobile` — 生成高质量移动 App 屏幕概念和多屏流程。
+- `imagegen-frontend-web` — 生成高级网站设计参考图，避免重复 AI 视觉套路。
+- `minimalist-ui` — 生成干净、编辑感、温暖单色、扁平 bento 的极简 UI。
+- `full-output-enforcement` — 强制完整输出代码，避免占位符和截断。
+- `redesign-existing-projects` — 审查并升级已有网站 / App 的视觉质量，同时尽量不破坏功能。
+- `high-end-visual-design` — 让 AI 按高端设计机构标准处理字体、间距、阴影、卡片和动画。
+- `stitch-design-taste` — 为 Google Stitch 生成高审美、反模板化的 `DESIGN.md`。
+- `design-taste-frontend` — 高级 UI/UX 工程规则，约束组件架构、CSS 性能和视觉平衡。
+
+### nextlevelbuilder/ui-ux-pro-max-skill
+
+- `ckm:banner-design` — 为社媒、广告、网站 hero 和印刷物设计 banner。
+- `ckm:brand` — 处理品牌声音、视觉身份、消息框架和品牌一致性。
+- `ckm:design-system` — 设计 token 架构、组件规格和策略型 slide。
+- `ckm:design` — 综合品牌、token、UI styling、logo、CIP mockup、HTML presentation 和 icon 设计。
+- `ckm:slides` — 用 Chart.js、设计 token 和响应式布局创建 HTML presentation。
+- `ckm:ui-styling` — 用 shadcn/ui、Radix、Tailwind 创建可访问、漂亮的界面。
+- `ui-ux-pro-max` — 提供 Web / Mobile UI/UX 设计智能，覆盖风格、配色、字体、产品类型和 UX 规则。
+
+### nexu-io/open-design
+
+- `blog-post` — 生成长文章 / 博客 / case study 页面。
+- `critique` — 从理念、视觉层级、细节、功能、创新五个维度审查 HTML artifact。
+- `dashboard` — 生成管理后台 / analytics dashboard 单页。
+- `dating-web` — 生成 dating / matchmaking 风格的消费级 dashboard。
+- `digital-eguide` — 生成两页式数字 e-guide 预览。
+- `docs-page` — 生成左侧导航、正文和右侧 TOC 的文档页面。
+- `email-marketing` — 生成品牌产品发布邮件 HTML。
+- `eng-runbook` — 生成工程 runbook、告警、procedure、值班和 incident checklist。
+- `finance-report` — 生成月度 / 季度财务报告页面。
+- `gamified-app` — 生成三屏 gamified mobile app 原型。
+- `magazine-web-ppt` — 生成“电子杂志 × 电子墨水”横向翻页网页 PPT。
+- `hr-onboarding` — 生成新员工入职计划页。
+- `invoice` — 生成可打印发票页。
+- `kanban-board` — 生成看板 / sprint board / Trello 风格任务板。
+- `magazine-poster` — 生成报纸 / 杂志风 editorial poster。
+- `meeting-notes` — 生成会议纪要、决策和 action items 页面。
+- `mobile-app` — 在 iPhone 框架中生成单屏移动 App 界面。
+- `mobile-onboarding` — 生成三屏移动 onboarding 流程。
+- `motion-frames` — 生成带 CSS 循环动画的 motion design 单帧。
+- `pm-spec` — 生成 PRD / product spec 页面。
+- `pricing-page` — 生成定价页、套餐和 FAQ。
+- `replit-deck` — 生成 Replit Slides 风格横向 HTML deck。
+- `saas-landing` — 生成 SaaS landing page。
+- `simple-deck` — 生成通用横向 HTML slide deck。
+- `social-carousel` — 生成三张 1080×1080 社媒 carousel 卡片。
+- `sprite-animation` — 生成 pixel / sprite 风格动画解释页。
+- `team-okrs` — 生成 OKR tracker 页面。
+- `tweaks` — 给 HTML artifact 增加实时参数调整侧栏。
+- `web-prototype` — 生成通用桌面 Web prototype。
+- `weekly-update` — 生成 weekly team update 横向 slide deck。
+- `wireframe-sketch` — 生成手绘草图风 wireframe 探索页。
+
+### ibelick/ui-skills
+
+- `baseline-ui` — 检查 Tailwind 项目的动画时长、字体尺度、可访问性和布局反模式。
+- `fixing-accessibility` — 修复 ARIA、键盘导航、focus、对比度、表单错误等可访问性问题。
+- `fixing-metadata` — 修复 title、description、canonical、Open Graph、Twitter Card、favicon、JSON-LD 等元数据。
+- `fixing-motion-performance` — 修复动画性能问题，例如 layout thrashing、scroll-linked motion、blur 和 jank。
+
+### jakubkrehel/make-interfaces-feel-better
+
+- `make-interfaces-feel-better` — 优化界面微交互、hover、阴影、边框、排版、动效和视觉细节。
+
+## 文档 / 写作技能
+
+### pranavred/claude-code-documentation-skill
+
+- `docs-with-mermaid` — 为架构、API 流程、数据库、状态机和系统设计生成带 Mermaid 图的技术文档。
+
+## 大型目录集合
+
+这些仓库也以 `skills/` 或隐藏技能目录为核心，但单仓库条目数量很大，或存在多种工具的重复打包副本，更适合单独生成全量附录或直接使用其原始目录。
+
+- [sickn33/antigravity-awesome-skills](https://github.com/sickn33/antigravity-awesome-skills/tree/main/skills) — 递归可见约 4,497 个 `SKILL.md`（含多工具插件打包副本），覆盖 Claude Code、Cursor、Codex CLI、Gemini CLI、Antigravity 等工具的 agentic skills；仓库同时维护 `CATALOG.md` 作为完整检索目录。
+- [github/awesome-copilot](https://github.com/github/awesome-copilot/tree/main/skills) — 递归可见约 474 个 `SKILL.md`，覆盖 GitHub Copilot 生态里的代码理解、治理、安全、云服务、框架和工作流技能。
+- [NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent/tree/main/skills) — `skills/` 下约 87 个 `SKILL.md`，覆盖 Apple 自动化、编码代理委派、创意生成、数据科学、DevOps、GitHub、MCP、媒体、MLOps、笔记、生产力、研究和软件开发工作流。
+- [catlog22/Claude-Code-Workflow](https://github.com/catlog22/Claude-Code-Workflow) — 递归可见约 98 个 `SKILL.md`，覆盖 Claude / Codex 工作流、团队角色、评审、测试、技能生成、memory 和 multi-agent pipeline。
+- [agentscope-ai/HiClaw](https://github.com/agentscope-ai/HiClaw) — 递归可见约 37 个 `SKILL.md`，分布在 manager / worker / team leader agents 下，覆盖频道、文件同步、项目、任务、团队、worker、模型切换和服务发布管理。
+- [iOfficeAI/AionUi](https://github.com/iOfficeAI/AionUi) — 递归可见约 35 个 `SKILL.md`，覆盖 AionUi 内置技能、Office CLI、PPT / DOCX / XLSX / PDF、Mermaid、招聘、OpenClaw setup 和 PR 自动化。
+- [qwibitai/nanoclaw](https://github.com/qwibitai/nanoclaw) — 递归可见约 52 个 `SKILL.md`，覆盖 Slack、Telegram、WhatsApp、Discord、GitHub、Linear、Vercel、Matrix、OpenCode、OpenClaw 迁移和容器内置技能。

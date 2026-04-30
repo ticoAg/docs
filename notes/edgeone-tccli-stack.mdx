@@ -1,0 +1,180 @@
+---
+title: "Tencent"
+description: "Tencent EdgeOne Pages、edgeone CLI、tccli teo、EdgeOne Pages MCP 和官方 Skill 的安装与使用"
+---
+
+EdgeOne 这条线要分成两个工具：`edgeone` 是 Pages 开发和部署 CLI；`tccli` 是腾讯云通用 OpenAPI CLI。本地项目里的经验是：前端部署走 `edgeone` 和官方框架 adapter，域名、规则、COS、EO 配置巡检走 `tccli`，不要把两个工具混成一个。
+
+## 什么时候用
+
+| 场景                                           | 推荐工具                   |
+| ---------------------------------------------- | -------------------------- |
+| EdgeOne Pages 初始化、本地开发、部署、环境变量 | `edgeone`                  |
+| EdgeOne / EO 站点、规则、域名配置巡检          | `tccli teo`                |
+| COS 对象上传、复制、短路径对象维护             | `coscli` + `tccli` 凭据    |
+| 让 Agent 一句话部署项目                        | EdgeOne Pages Deploy Skill |
+| 在 IDE 内让 Agent 调用部署能力                 | EdgeOne Pages MCP          |
+
+本地 `lyriktrip.com` 的可复用经验是：Astro 前端通过 `DEPLOY_TARGET=edgeone` 切换到官方 `@edgeone/astro` adapter，生产前端和静态资源交给 EdgeOne，API 仍然可以继续由独立后端域名提供。
+
+## EdgeOne Pages CLI
+
+安装：
+
+```bash
+npm install -g edgeone@latest
+edgeone -v
+edgeone -h
+```
+
+登录与初始化：
+
+```bash
+edgeone login
+edgeone whoami
+edgeone pages init
+edgeone pages link
+```
+
+本地开发：
+
+```bash
+edgeone pages dev
+```
+
+默认本地服务在 `http://localhost:8088/`。官方文档特别提醒：不要把 `edgeone pages dev` 写进 `edgeone.json` 的 `devCommand` 或 `package.json` 的 `dev` 脚本，否则容易递归启动。
+
+部署：
+
+```bash
+# 已关联项目时部署生产环境
+edgeone pages deploy
+
+# 部署预览环境
+edgeone pages deploy -e preview
+
+# CI/CD 中用 API Token 部署
+edgeone pages deploy -n <projectName> -t "$EDGEONE_API_TOKEN"
+edgeone pages deploy -n <projectName> -e preview -t "$EDGEONE_API_TOKEN"
+```
+
+环境变量：
+
+```bash
+edgeone pages env ls
+edgeone pages env pull
+edgeone pages env pull -f .env.prod
+edgeone pages env add PUBLIC_API_BASE_URL https://api.example.com/api
+edgeone pages env rm PUBLIC_API_BASE_URL
+```
+
+## Astro 接 EdgeOne
+
+安装官方 adapter：
+
+```bash
+npm install -D @edgeone/astro
+```
+
+一个可复用模式是通过环境变量切换 adapter：
+
+```bash
+DEPLOY_TARGET=edgeone npm run build
+```
+
+在 `astro.config.mjs` 里根据 `DEPLOY_TARGET` 选择 `@edgeone/astro` 或自托管 adapter。这样同一套代码可以服务自托管后端和 EdgeOne Pages。
+
+生产接入建议：
+
+- `www.example.com` 由 EdgeOne Pages 提供页面与静态资源。
+- `cdn.example.com` 承接公开媒体和短路径对象。
+- `api.example.com` 继续指向独立后端源站。
+- 前端环境变量里把 `PUBLIC_API_BASE_URL` 指到独立 API 域名，减少在 EdgeOne 里维护复杂 `/api/*` 回源规则。
+
+## tccli 管 EdgeOne / EO
+
+`tccli` 是腾讯云 OpenAPI 的通用终端入口。安装建议放进隔离环境，避免污染系统 Python：
+
+```bash
+python3 -m venv ~/.local/share/tccli-venv
+~/.local/share/tccli-venv/bin/pip install tccli
+~/.local/share/tccli-venv/bin/tccli --version
+```
+
+如果已经习惯全局命令，也可以用官方 pip 安装方式：
+
+```bash
+pip install tccli
+tccli --version
+```
+
+初始化配置：
+
+```bash
+tccli configure
+tccli configure get region
+tccli configure list
+```
+
+也可以用环境变量，适合 CI 和临时会话：
+
+```bash
+export TENCENTCLOUD_SECRET_ID=...
+export TENCENTCLOUD_SECRET_KEY=...
+export TENCENTCLOUD_REGION=ap-guangzhou
+```
+
+EdgeOne / EO 常用巡检命令：
+
+```bash
+# 查看 EdgeOne 站点 / Zone
+tccli teo DescribeZones --Limit 100
+
+# 查看某个 Zone 的七层加速规则
+tccli teo DescribeL7AccRules --ZoneId <zone-id> --Limit 100
+```
+
+本地项目里比较稳的做法是包一层 `scripts/edgeone/tccli.sh`：优先使用 PATH 里的 `tccli`，找不到时再用固定 venv 里的 `~/.local/share/tccli-venv/bin/tccli`。同时写一个 `doctor.sh` 检查 `edgeone`、`tccli`、region、鉴权来源，但输出 SecretId 时只显示前几位，避免日志泄露。
+
+## EdgeOne MCP 和 Skill
+
+EdgeOne Pages 官方 Skill 适合让 AI 工具自动完成部署流程：
+
+```bash
+npx skills add TencentEdgeOne/edgeone-pages-skills
+```
+
+安装后可以用自然语言触发，例如“把当前项目部署到 EdgeOne Pages 预览环境”。它会按流程检查 CLI 版本、登录状态、项目构建和上传。
+
+EdgeOne Pages MCP 适合接入支持 MCP 的 IDE / Agent。典型配置：
+
+```json
+{
+    "mcpServers": {
+        "edgeone-pages-mcp-server": {
+            "command": "npx",
+            "args": ["edgeone-pages-mcp"],
+            "env": {
+                "EDGEONE_PAGES_API_TOKEN": "<token>",
+                "EDGEONE_PAGES_PROJECT_NAME": "<project-name>"
+            }
+        }
+    }
+}
+```
+
+## 实践建议
+
+- 日常部署：优先 `edgeone pages deploy`，清楚、可复现。
+- Agent 一句话部署：用官方 EdgeOne Pages Skill。
+- IDE 内让 Agent 直接调用部署工具：接 EdgeOne Pages MCP。
+- 域名、规则、COS、EO 配置巡检：用 `tccli`，并把常用命令封装成脚本。
+- 不要把 API Token、SecretId、SecretKey 写入仓库；CI 里走 secret，文档里只放占位符。
+
+## 官方文档入口
+
+- [EdgeOne CLI](https://edgeone.cloud.tencent.com/pages/document/162936923278893056)
+- [EdgeOne Pages Deploy Skill](https://edgeone.ai/document/205358412301221888)
+- [Tencent Cloud MCP Server](https://github.com/TencentCloudCommunity/mcp-server)
+- [腾讯云 TCCLI 安装](https://cloud.tencent.com/document/product/440/34011)
+- [Tencent Cloud TCCLI configuration](https://www.tencentcloud.com/document/product/1013/52421)

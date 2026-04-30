@@ -1,131 +1,124 @@
 ---
-title: 'AI 智能体资源目录'
-description: '基于 ticoAg GitHub 星标持续整理的智能体、MCP、工具、技能与上下文资源入口'
+title: "AI 智能体资源目录"
+description: "基于 ticoAg GitHub 星标持续整理的智能体、MCP、工具、技能与上下文资源入口"
 ---
 
 <Note>
-	这是一个面向 AI Coding / 智能体生态的目录站。内容来自
-	`ticoAg` 的 GitHub 星标列表，并按仓库主用途持续归类到
-	`智能体`、`MCP`、`工具`、`技能`、`上下文工程`
-	和 `沙盒` 等主题中。
+    这是一个面向 AI Coding / 智能体生态的目录站。内容来自 `ticoAg` 的 GitHub
+    星标列表，并按仓库主用途持续归类到
+    `智能体`、`MCP`、`工具`、`技能`、`上下文工程` 和 `沙盒` 等主题中。
 </Note>
 
 ## 先从这里开始
 
 <CardGroup cols={2}>
-	<Card
-		title="浏览总索引"
-		icon="list"
-		href="/indexes/agent-ecosystem"
-	>
-		查看按用途分组的完整仓库索引。
-	</Card>
-	<Card
-		title="查看 GitHub 星标"
-		icon="star"
-		href="https://github.com/ticoAg?tab=stars"
-	>
-		回到原始 GitHub 星标页查看所有来源列表。
-	</Card>
-	<Card
-		title="本地预览"
-		icon="rectangle-terminal"
-		href="/usage-guide/getting-started/development"
-	>
-		使用 `mint dev` 预览站点改动。
-	</Card>
+    <Card title="浏览总索引" icon="list" href="/indexes/agent-ecosystem">
+        查看按用途分组的完整仓库索引。
+    </Card>
+    <Card
+        title="查看 GitHub 星标"
+        icon="star"
+        href="https://github.com/ticoAg?tab=stars"
+    >
+        回到原始 GitHub 星标页查看所有来源列表。
+    </Card>
+    <Card
+        title="本地预览"
+        icon="rectangle-terminal"
+        href="/usage-guide/getting-started/development"
+    >
+        使用 `mint dev` 预览站点改动。
+    </Card>
+</CardGroup>
+
+## 实用笔记
+
+<CardGroup cols={2}>
+    <Card
+        title="Cloudflare Free"
+        icon="cloud"
+        href="/notes/cloudflare-free-stack"
+    >
+        DNS、Pages、Workers、R2、D1、KV、Tunnel、Access、Turnstile 和 Workers
+        AI。
+    </Card>
+    <Card title="EdgeOne" icon="cloud-upload" href="/notes/edgeone-tccli-stack">
+        EdgeOne Pages、`edgeone` CLI、`tccli teo`、MCP 和官方部署 Skill。
+    </Card>
+    <Card
+        title="Yunxiao"
+        icon="git-pull-request"
+        href="/notes/yunxiao-devops-stack"
+    >
+        云效 MCP、Codeup、Packages、流水线和工作项协作路径。
+    </Card>
+    <Card title="Lark" icon="message-circle" href="/notes/lark-cli-mcp-stack">
+        飞书/Lark CLI、官方 Skills、OpenAPI MCP 和办公自动化。
+    </Card>
 </CardGroup>
 
 ## 当前来源
 
 <CardGroup cols={3}>
-	<Card
-		title="agent 列表"
-		icon="terminal"
-		href="https://github.com/stars/ticoAg/lists/agent"
-	>
-		终端智能体、CLI 与相关工作流入口。
-	</Card>
-	<Card
-		title="agent-plugin 列表"
-		icon="plug"
-		href="https://github.com/stars/ticoAg/lists/agent-plugin"
-	>
-		插件、工具扩展、代理服务与周边能力来源。
-	</Card>
-	<Card
-		title="skills 列表"
-		icon="sparkles"
-		href="https://github.com/stars/ticoAg/lists/skills"
-	>
-		技能仓库、规则集与设计增强能力来源。
-	</Card>
+    <Card
+        title="agent 列表"
+        icon="terminal"
+        href="https://github.com/stars/ticoAg/lists/agent"
+    >
+        终端智能体、CLI 与相关工作流入口。
+    </Card>
+    <Card
+        title="agent-plugin 列表"
+        icon="plug"
+        href="https://github.com/stars/ticoAg/lists/agent-plugin"
+    >
+        插件、工具扩展、代理服务与周边能力来源。
+    </Card>
+    <Card
+        title="skills 列表"
+        icon="sparkles"
+        href="https://github.com/stars/ticoAg/lists/skills"
+    >
+        技能仓库、规则集与设计增强能力来源。
+    </Card>
 </CardGroup>
 
 ## 按主题浏览
 
 <CardGroup cols={3}>
-	<Card
-		title="智能体"
-		icon="bot"
-		href="/indexes/agent-cli"
-	>
-		终端智能体、编码智能体与 CLI 主入口。
-	</Card>
-	<Card
-		title="编排 / 工作台"
-		icon="blocks"
-		href="/indexes/agent-orchestration"
-	>
-		多智能体编排、工作台与调度界面。
-	</Card>
-	<Card
-		title="MCP"
-		icon="server"
-		href="/indexes/mcp"
-	>
-		协议、SDK、MCP servers 与相关合集。
-	</Card>
-	<Card
-		title="工具"
-		icon="wrench"
-		href="/indexes/tools"
-	>
-		浏览器自动化、CLI、插件与工程工具链。
-	</Card>
-	<Card
-		title="技能"
-		icon="sparkles"
-		href="/indexes/skills"
-	>
-		智能体技能、设计增强与开发工作流规则集。
-	</Card>
-	<Card
-		title="上下文工程"
-		icon="database"
-		href="/indexes/context-engineering"
-	>
-		检索、记忆、上下文工程与索引能力。
-	</Card>
-	<Card
-		title="智能体框架"
-		icon="cpu"
-		href="/indexes/agent-frameworks"
-	>
-		智能体框架、研究支撑与多智能体引擎。
-	</Card>
-	<Card
-		title="提示词 / 网关"
-		icon="message-pen"
-		href="/indexes/prompts"
-	>
-		提示词模板、技巧与网关类周边能力。
-	</Card>
-	<Card
-		title="沙盒"
-		icon="box"
-		href="/indexes/sandboxes"
-	>
-		执行环境、sandbox runtime 与隔离运行。
-	</Card>
+    <Card title="智能体" icon="bot" href="/indexes/agent-cli">
+        终端智能体、编码智能体与 CLI 主入口。
+    </Card>
+    <Card
+        title="编排 / 工作台"
+        icon="blocks"
+        href="/indexes/agent-orchestration"
+    >
+        多智能体编排、工作台与调度界面。
+    </Card>
+    <Card title="MCP" icon="server" href="/indexes/mcp">
+        协议、SDK、MCP servers 与相关合集。
+    </Card>
+    <Card title="工具" icon="wrench" href="/indexes/tools">
+        浏览器自动化、CLI、插件与工程工具链。
+    </Card>
+    <Card title="技能" icon="sparkles" href="/indexes/skills">
+        智能体技能、设计增强与开发工作流规则集。
+    </Card>
+    <Card
+        title="上下文工程"
+        icon="database"
+        href="/indexes/context-engineering"
+    >
+        检索、记忆、上下文工程与索引能力。
+    </Card>
+    <Card title="智能体框架" icon="cpu" href="/indexes/agent-frameworks">
+        智能体框架、研究支撑与多智能体引擎。
+    </Card>
+    <Card title="提示词 / 网关" icon="message-pen" href="/indexes/prompts">
+        提示词模板、技巧与网关类周边能力。
+    </Card>
+    <Card title="沙盒" icon="box" href="/indexes/sandboxes">
+        执行环境、sandbox runtime 与隔离运行。
+    </Card>
 </CardGroup>
