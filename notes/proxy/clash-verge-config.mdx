@@ -1,0 +1,381 @@
+---
+title: "Clash Verge Rev 配置与优化"
+description: "客户端侧 Clash / Clash Verge Rev 分组、测速和规则前置，不含自建节点。"
+type: Guide
+tags: [clash, proxy]
+---
+
+这篇笔记只记录「客户端侧」的 Clash / Clash Verge Rev 配置经验，不包含任何自建服务器或节点搭建的步骤。
+
+主要目标：
+
+- 为 GitHub / Google 等网站创建专用测速分组（`GitHub-Fast` / `Google-Fast`）
+- 自动按地域（R1、US、JP、TW、SG、HK 等）拆分节点，生成 `<Region>-Fast` 与 `<Region>` 分组
+- 把 GitHub / Google / 网易云音乐的规则插到规则列表最前面，提高命中率和访问体验
+
+> 前提假设：你的订阅已经提供节点，本页只负责如何「更聪明地选择和分流」这些节点。
+
+## 基础：配置 Clash 节点（ss 示例）
+
+下面是一个简单的 Shadowsocks（`type: ss`）节点配置示例，通常来自你的订阅或你在 Clash Verge Rev 里手动添加：
+
+```yaml
+proxies:
+    - name: your-node-name
+      type: ss
+      server: yourdomain.com
+      port: your-port
+      cipher: chacha20-ietf-poly1305
+      password: your-password
+      plugin: obfs
+      plugin-opts:
+          mode: tls
+          host: yourdomain.com
+```
+
+在 Clash Verge Rev 中，你一般不需要直接编辑 YAML 文件，而是通过 UI 导入订阅即可。这个示例只是帮助你在脑中有一个「最终到 Clash 的配置」的形象。
+
+## 使用 Clash Verge Rev 优化 GitHub / Google 访问
+
+这一节记录我在 Clash Verge Rev 里使用的两个组件：
+
+- `Merge.yaml`：规则合并模板，用来在原订阅基础上追加 / 提前一些规则和设置；
+- 全局 `Script.js`：在最终下发给 Clash 的配置上做脚本级处理，自动生成分组和规则。
+
+目标：
+
+- 针对 GitHub / Google 单独建测速分组，避免和其他流量混在一起；
+- 让网易云音乐等特定服务走更适合的代理；
+- 自动根据节点命名规则，把节点分类到不同地域分组，方便选择。
+
+> 下文仅是配置逻辑说明，无任何服务器搭建内容。
+
+### Merge.yaml：规则合并模板
+
+在 Clash Verge Rev 中，可以为 profile 配置一个「Merge 模板」，用于在订阅基础上追加字段。
+
+我使用的 Merge 模板路径（在 Linux 上）是：
+
+```text
+~/.local/share/io.github.clash-verge-rev.clash-verge-rev/profiles/Merge.yaml
+```
+
+> 完整文件也可以直接从仓库下载：  
+> [Merge.yaml](/images/clash-verge/Merge.yaml)
+
+内容如下（可以直接作为 Clash Verge Rev 的 merge 模板使用）：
+
+```yaml
+# Profile Enhancement Merge Template for Clash Verge
+
+profile:
+    store-selected: true
+
+dns:
+    use-system-hosts: false
+
+# 这里用 prepend-rules，而不是 rules，表示把规则插到原配置规则前面
+prepend-rules:
+    # Netease Music 直连/加速
+    - IP-CIDR,117.135.207.67/32,Google-Fast
+    - DOMAIN-SUFFIX,music.163.com,Google-Fast
+    - DOMAIN-SUFFIX,music.126.net,Google-Fast
+
+    # GitHub 专用组（脚本中已创建 GitHub url-test 分组）
+    - DOMAIN-KEYWORD,github,GitHub
+    - DOMAIN-SUFFIX,github.com,GitHub
+    - DOMAIN-SUFFIX,githubusercontent.com,GitHub
+    - DOMAIN-SUFFIX,ghcr.io,GitHub
+
+    # Google 专用组（脚本中已创建 Google url-test 分组）
+    - DOMAIN-SUFFIX,google.com,Google
+    - DOMAIN-SUFFIX,gstatic.com,Google
+    - DOMAIN-SUFFIX,googlesyndication.com,Google
+    - DOMAIN-SUFFIX,googletagmanager.com,Google
+    - DOMAIN-SUFFIX,googletagservices.com,Google
+
+prepend-proxies: []
+prepend-proxy-groups: []
+
+append-rules: []
+append-proxies: []
+```
+
+几点说明：
+
+- `profile.store-selected: true`  
+  让 Clash 记住你在 UI 中选择的分组 / 节点，下次启动时不需要重新选。
+- `dns.use-system-hosts: false`  
+  让 Clash 完全接管域名解析，避免本地 `/etc/hosts` 干扰分流。
+- `prepend-rules`  
+  使用 `prepend-rules` 而不是直接覆盖 `rules`，表示「保留原订阅规则，但在前面插入一批更高优先级的规则」。  
+  这里为网易云音乐、GitHub、Google 的域名直接指定了对应分组。
+
+### Script.js：全局扩展脚本
+
+Clash Verge Rev 支持在最终配置上运行一个「全局扩展脚本」，用于动态修改 `config`。
+
+脚本路径（Linux）：
+
+```text
+~/.local/share/io.github.clash-verge-rev.clash-verge-rev/profiles/Script.js
+```
+
+> 完整脚本文件：  
+> [Script.js](/images/clash-verge/Script.js)
+
+核心思路：
+
+- 利用节点命名约定：`GLaDOS-<Region>-xx`（例如 `GLaDOS-US-01`），从 `config.proxies`
+  中自动按地域（R1、US、JP、TW、SG、HK、B1、D1、S2、H2、H3 等）归类。
+- 为 GitHub / Google 创建测速分组：
+  - `GitHub-Fast`：只在 R1 + H2 + H3 中测速。
+  - `Google-Fast`：在 R1 + SG + H2 + H3 + JP 中测速。
+- 自动为每个地域生成两个分组：
+  - `<Region>-Fast`：`url-test`，自动在该地域内测速选最快；
+  - `<Region>`：`select`，可以在 UI 中手动选具体节点或对应的 `*-Fast`。
+- 在规则列表最前面插入一批 GitHub / Google 相关的域名规则，使其优先命中。
+
+完整脚本如下（这是在 Clash Verge Rev 中运行的 JavaScript 逻辑）：
+
+```js
+// Global extension script for clash-verge-rev
+// This script runs on the final merged config object before it is sent to Clash.
+
+function main(config, profileName) {
+    // 确保 proxy-groups / rules 存在
+    if (!Array.isArray(config["proxy-groups"])) {
+        config["proxy-groups"] = [];
+    }
+
+    const groups = config["proxy-groups"];
+    // 从原始订阅中按地域前缀收集节点（R1、US、JP、TW、SG、HK 等）
+    const regionProxies = collectRegionProxies(config);
+
+    // 为不同服务准备不同的测速候选节点
+    // GitHub：只用 R1 + H2 + H3（移除 JP / SG）
+    const githubFastProxies = [
+        ...(regionProxies.R1 || []),
+        ...(regionProxies.H2 || []),
+        ...(regionProxies.H3 || []),
+    ];
+
+    // Google / Docker：R1 + SG + H2 + H3 + JP
+    const googleFastProxies = [
+        ...(regionProxies.R1 || []),
+        ...(regionProxies.SG || []),
+        ...(regionProxies.H2 || []),
+        ...(regionProxies.H3 || []),
+        ...(regionProxies.JP || []),
+    ];
+
+    // -------- 2. GitHub / Google 专用测速组（Fast）--------
+    // GitHub-Fast：只在 R1 + H2 + H3 中测速（不包含 JP/SG），测试地址用 GitHub 官网
+    ensureUrlTestGroup(groups, {
+        name: "GitHub-Fast",
+        defaultProxies: githubFastProxies,
+        url: "https://github.com",
+        interval: 120,
+        tolerance: 40,
+    });
+
+    // Google-Fast 组：使用 R1 + SG + H2 + H3 + JP，测试地址用 Google 官网
+    ensureUrlTestGroup(groups, {
+        name: "Google-Fast",
+        defaultProxies: googleFastProxies,
+        url: "https://www.google.com/generate_204",
+        interval: 120,
+        tolerance: 40,
+    });
+
+    // -------- 3. GitHub / Google 可手动选择的分组 --------
+    // 规则会指向这些分组，你可以在 UI 中选择具体节点或对应的 *-Fast 组
+
+    // GitHub：优先 GitHub-Fast，然后你也可以手动选具体节点（R1 + H2 + H3）
+    ensureSelectGroup(groups, {
+        name: "GitHub",
+        defaultProxies: ["GitHub-Fast"].concat(githubFastProxies),
+    });
+
+    // Google：优先 Google-Fast
+    ensureSelectGroup(groups, {
+        name: "Google",
+        defaultProxies: ["Google-Fast"].concat(googleFastProxies),
+    });
+
+    // -------- 4. 按地域自动创建分组（你的“地域组”）--------
+    // 把原始订阅里的节点按地域前缀拆开，例如：
+    //   R1:  GLaDOS-R1-*
+    //   B1:  GLaDOS-B1-*
+    //   US:  GLaDOS-US-*
+    //   JP:  GLaDOS-JP-*
+    //   TW:  GLaDOS-TW-*
+    //   SG:  GLaDOS-SG-*
+    //   HK:  GLaDOS-HK-*
+    //   D1:  GLaDOS-D1-*
+    //   S2:  GLaDOS-S2-*
+    //   H2:  GLaDOS-H2-*
+    //   H3:  GLaDOS-H3-*
+    //
+    // 对于每个地域 code（例如 US），创建两个组：
+    //   1) US-Fast  : url-test，自动在该地域内测速选最快
+    //   2) US       : select  ，可以在 UI 里选择 US-Fast 或具体某个 US 节点
+
+    for (const [region, names] of Object.entries(regionProxies)) {
+        if (!Array.isArray(names) || !names.length) continue;
+
+        const fastGroupName = region + "-Fast";
+        const selectGroupName = region;
+
+        // 地域自动测速组: <region>-Fast
+        ensureUrlTestGroup(groups, {
+            name: fastGroupName,
+            defaultProxies: names,
+            url: "http://www.gstatic.cn/generate_204",
+            interval: 120,
+            tolerance: 40,
+        });
+
+        // 地域可选组: <region>
+        ensureSelectGroup(groups, {
+            name: selectGroupName,
+            defaultProxies: [fastGroupName].concat(names),
+        });
+    }
+
+    // -------- 5. 为 GitHub / Google 注入高优先级规则 --------
+    // 参考官方文档的做法，在脚本中修改 config.rules。
+    // 这里会先复制原订阅中的规则，然后把自定义规则插入到最前面。
+    injectDomainRules(config, [
+        // GitHub → GitHub 组
+        "DOMAIN-KEYWORD,github,GitHub",
+        "DOMAIN-SUFFIX,github.com,GitHub",
+        "DOMAIN-SUFFIX,githubusercontent.com,GitHub",
+        "DOMAIN-SUFFIX,ghcr.io,GitHub",
+
+        // Google → Google 组
+        "DOMAIN-SUFFIX,google.com,Google",
+        "DOMAIN-SUFFIX,gstatic.com,Google",
+        "DOMAIN-SUFFIX,googlesyndication.com,Google",
+        "DOMAIN-SUFFIX,googletagmanager.com,Google",
+        "DOMAIN-SUFFIX,googletagservices.com,Google",
+    ]);
+
+    return config;
+}
+
+// 保证某个 url-test 分组存在并位于 proxy-groups 前面
+function ensureUrlTestGroup(groups, options) {
+    const { name, defaultProxies, url, interval, tolerance } = options;
+
+    let index = groups.findIndex((g) => g && g.name === name);
+    let group;
+
+    if (index === -1) {
+        group = { name };
+    } else {
+        // 从原位置拿出来，稍后插到最前面
+        group = groups.splice(index, 1)[0] || { name };
+    }
+
+    let proxies = Array.isArray(group.proxies) ? group.proxies.slice() : [];
+    const exists = new Set(proxies);
+
+    // 在现有基础上补齐默认候选节点
+    for (const p of defaultProxies || []) {
+        if (!exists.has(p)) {
+            proxies.push(p);
+        }
+    }
+
+    group.type = "url-test";
+    group.url = url;
+    group.interval = interval;
+    if (typeof tolerance === "number") {
+        group.tolerance = tolerance;
+    }
+    group.proxies = proxies;
+
+    // 始终放到最前面，便于在 UI 中找到
+    groups.unshift(group);
+}
+
+// 保证某个 select 分组存在并位于 proxy-groups 前面
+function ensureSelectGroup(groups, options) {
+    const { name, defaultProxies } = options;
+
+    let index = groups.findIndex((g) => g && g.name === name);
+    let group;
+
+    if (index === -1) {
+        group = { name };
+    } else {
+        // 从原位置拿出来，稍后插到最前面
+        group = groups.splice(index, 1)[0] || { name };
+    }
+
+    // 这里直接用默认列表，保证结构稳定，也方便你在 UI 中理解
+    group.type = "select";
+    group.proxies = (defaultProxies || []).slice();
+
+    // 同样放到最前面
+    groups.unshift(group);
+}
+
+// 在规则列表顶部注入一批去重后的规则（保持优先匹配），并保留原订阅规则
+function injectDomainRules(config, rulesToAdd) {
+    const originalRules = Array.isArray(config.rules)
+        ? config.rules.slice()
+        : [];
+
+    const existing = new Set(originalRules);
+    const prepend = [];
+
+    for (const rule of rulesToAdd || []) {
+        if (!existing.has(rule)) {
+            prepend.push(rule);
+        }
+    }
+
+    config.rules = prepend.concat(originalRules);
+}
+
+// 从 config.proxies 中按地域前缀收集节点
+// 约定：节点名类似 GLaDOS-US-01 / GLaDOS-JP-02 / GLaDOS-R1-03
+//      取中间的 US / JP / R1 作为地域 code
+function collectRegionProxies(config) {
+    const result = {};
+
+    const proxies = Array.isArray(config.proxies) ? config.proxies : [];
+    for (const p of proxies) {
+        if (!p || typeof p.name !== "string") continue;
+        const name = p.name;
+        if (!name.startsWith("GLaDOS-")) continue;
+
+        const match = name.match(/^GLaDOS-([^-]+)-/);
+        if (!match) continue;
+
+        const region = match[1]; // 例如 R1 / US / JP / TW ...
+        if (!result[region]) {
+            result[region] = [];
+        }
+        result[region].push(name);
+    }
+
+    return result;
+}
+```
+
+### 使用步骤小结
+
+整体使用流程可以简单总结为：
+
+1. 在 Clash Verge Rev 的 profile 中启用 merge 功能，并指定上面的 `Merge.yaml`。
+2. 在全局脚本配置中粘贴 `Script.js` 的内容并启用。
+3. 确保订阅里的节点名称满足 `GLaDOS-<Region>-xx` 这种格式，这样脚本才能自动识别地域并自动生成 `<Region>` / `<Region>-Fast` 分组。
+4. 打开 UI，找到：
+   - `GitHub-Fast` / `GitHub` 分组；
+   - `Google-Fast` / `Google` 分组；
+   - 各个 `<Region>` / `<Region>-Fast` 分组；
+   根据需要选择 `*-Fast` 或具体节点。
+5. 之后日常只需要在这些分组里切换，不必每次翻全量节点列表。

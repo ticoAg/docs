@@ -1,7 +1,7 @@
 {
 	"$schema": "https://mintlify.com/docs.json",
 	"theme": "mint",
-	"name": "AI 智能体资源目录",
+	"name": "ticoAg's notes",
 	"colors": {
 		"primary": "#0F766E",
 		"light": "#14B8A6",
@@ -83,59 +83,108 @@
 	"navigation": {
 		"tabs": [
 			{
-				"tab": "资源目录",
+				"tab": "笔记",
 				"groups": [
 					{
 						"group": "开始",
 						"pages": ["index"]
 					},
 					{
-						"group": "生态索引",
-						"root": "indexes/agent-ecosystem",
-						"expanded": true,
+						"group": "Agent / Skill",
 						"pages": [
-							{
-								"group": "智能体",
-								"icon": "robot",
-								"expanded": true,
-								"pages": [
-									"indexes/agent-cli",
-									"indexes/agent-orchestration",
-									"indexes/agent-frameworks"
-								]
-							},
-							{
-								"group": "能力层",
-								"icon": "wrench",
-								"expanded": true,
-								"pages": [
-									"indexes/tools",
-									"indexes/mcp",
-									"indexes/context-engineering",
-									"indexes/sandboxes",
-									"indexes/gateways"
-								]
-							},
-							{
-								"group": "规则 / 方法",
-								"icon": "sparkles",
-								"expanded": true,
-								"pages": [
-									"indexes/skills",
-									"indexes/skill-directory",
-									"indexes/prompts"
-								]
-							}
+							"notes/agents/skill-maintenance",
+							"notes/agents/working-defaults",
+							"notes/skills/catalog"
 						]
 					},
 					{
-						"group": "实用笔记",
-						"expanded": true,
+						"group": "系统与环境",
+						"pages": [
+							"notes/setup/macos",
+							"notes/setup/github-pages"
+						]
+					},
+					{
+						"group": "代理",
+						"pages": ["notes/proxy/clash-verge-config"]
+					},
+					{
+						"group": "远程桌面",
+						"pages": ["notes/remote-desktop/home-ubuntu-rdp"]
+					},
+					{
+						"group": "云与办公栈",
 						"pages": [
 							"notes/cloudflare-free-stack",
 							"notes/edgeone-tccli-stack",
 							"notes/yunxiao-devops-stack",
 							"notes/lark-cli-mcp-stack"
+						]
+					},
+					{
+						"group": "随笔",
+						"pages": ["notes/blogs/2025-02-21"]
+					}
+				]
+			},
+			{
+				"tab": "生态索引",
+				"groups": [
+					{
+						"group": "总览",
+						"pages": ["indexes/agent-ecosystem"]
+					},
+					{
+						"group": "智能体",
+						"icon": "robot",
+						"pages": [
+							"indexes/agent-cli",
+							"indexes/agent-orchestration",
+							"indexes/agent-frameworks"
+						]
+					},
+					{
+						"group": "能力层",
+						"icon": "wrench",
+						"pages": [
+							"indexes/tools",
+							"indexes/mcp",
+							"indexes/context-engineering",
+							"indexes/sandboxes",
+							"indexes/gateways"
+						]
+					},
+					{
+						"group": "规则 / 方法",
+						"icon": "sparkles",
+						"pages": [
+							"indexes/skills",
+							"indexes/skill-directory",
+							"indexes/prompts"
+						]
+					}
+				]
+			},
+			{
+				"tab": "站点维护",
+				"groups": [
+					{
+						"group": "工作流",
+						"pages": [
+							"usage-guide/getting-started/development",
+							"usage-guide/getting-started/maintaining-agent-ecosystem"
+						]
+					},
+					{
+						"group": "Mintlify 写法",
+						"pages": [
+							"usage-guide/getting-started/quickstart",
+							"usage-guide/customization/settings",
+							"usage-guide/customization/navigation",
+							"usage-guide/writing-content/markdown",
+							"usage-guide/writing-content/code",
+							"usage-guide/writing-content/images",
+							"usage-guide/writing-content/reusable-snippets"
 						]
 					}
 				]

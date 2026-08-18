@@ -1,0 +1,34 @@
+# Profile Enhancement Merge Template for Clash Verge
+
+profile:
+    store-selected: true
+
+dns:
+    use-system-hosts: false
+
+# 这里用 prepend-rules，而不是 rules，表示把规则插到原配置规则前面
+prepend-rules:
+    # Netease Music 直连/加速
+    - IP-CIDR,117.135.207.67/32,Google-Fast
+    - DOMAIN-SUFFIX,music.163.com,Google-Fast
+    - DOMAIN-SUFFIX,music.126.net,Google-Fast
+
+    # GitHub 专用组（脚本中已创建 GitHub url-test 分组）
+    - DOMAIN-KEYWORD,github,GitHub
+    - DOMAIN-SUFFIX,github.com,GitHub
+    - DOMAIN-SUFFIX,githubusercontent.com,GitHub
+    - DOMAIN-SUFFIX,ghcr.io,GitHub
+
+    # Google 专用组（脚本中已创建 Google url-test 分组）
+    - DOMAIN-SUFFIX,google.com,Google
+    - DOMAIN-SUFFIX,gstatic.com,Google
+    - DOMAIN-SUFFIX,googlesyndication.com,Google
+    - DOMAIN-SUFFIX,googletagmanager.com,Google
+    - DOMAIN-SUFFIX,googletagservices.com,Google
+
+prepend-proxies: []
+prepend-proxy-groups: []
+
+append-rules: []
+append-proxies: []
+
