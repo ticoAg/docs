@@ -1,0 +1,46 @@
+---
+title: "Skill 维护之道"
+description: "两层 skill 库：总库不自动加载，激活层只放软链。新技能先进总库，再按需挂到全局或某个仓库。"
+type: Guide
+tags: [skills, agents]
+---
+
+Skill 分两层，不要把总库整包扫进一次会话。
+
+## 两层
+
+| 层 | 路径 | 作用 |
+| --- | --- | --- |
+| 总库 | `~/.agents/skill-library/` | 所有已安装 skill 的实体。Agent 不会自动扫这里。 |
+| 全局激活 | `~/.agents/skills/` | Claude / Codex / Grok 都会扫。只放**常用软链**。 |
+| 产品专用 | 例如 `~/.grok/skills/` | 某一家 CLI 额外要扫的常用项。 |
+| 仓库激活 | `<repo>/.agents/skills/` | 这个仓库才需要的 skill，同样用软链指回总库。 |
+
+`lark-base` 这类会经常用的，挂到全局激活。`lark-*` 其余冷门项留在总库，哪个仓库要用再链过去。
+
+## 怎么挂
+
+```bash
+# 全局
+ln -s ../skill-library/<name> ~/.agents/skills/<name>
+
+# 某个仓库
+mkdir -p .agents/skills
+ln -s ~/.agents/skill-library/<name> .agents/skills/<name>
+
+# 某一家 CLI 专用（以 Grok 为例）
+ln -s ../../.agents/skill-library/<name> ~/.grok/skills/<name>
+```
+
+新装的 skill（`npx skills add …` 或手工拷贝）**先放进总库**，再按需软链。不要在仓库里复制一份 `SKILL.md`。
+
+## 为什么这样
+
+- 会话上下文有限。扫整个总库会把说明、脚本文本一起灌进去。
+- 同一份 skill 可以给多家 CLI 用，只维护总库一处。
+- 仓库级软链让「这个项目需要飞书 / Mintlify / Cloudflare」写在仓库里，不污染全局。
+
+## 和本站的关系
+
+- 公开目录与已安装列表：[互联网 Skill 目录](/notes/skills/catalog)
+- 跨仓库的默认工作方式：[工作默认约定](/notes/agents/working-defaults)

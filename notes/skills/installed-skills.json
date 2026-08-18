@@ -1,0 +1,898 @@
+[
+  {
+    "name": "gh-address-comments",
+    "dir": "gh-address-comments",
+    "category": "GitHub",
+    "source": "GitHub / OpenAI skills",
+    "description": "Help address review/issue comments on the open GitHub PR for the current branch using gh CLI; verify gh auth first and prompt the user to…",
+    "active": "总库"
+  },
+  {
+    "name": "gh-fix-ci",
+    "dir": "gh-fix-ci",
+    "category": "GitHub",
+    "source": "GitHub / OpenAI skills",
+    "description": "Inspect GitHub PR checks with gh, pull failing GitHub Actions logs, summarize failure context, then create a fix plan and implement after…",
+    "active": "总库"
+  },
+  {
+    "name": "github",
+    "dir": "github",
+    "category": "GitHub",
+    "source": "GitHub / OpenAI skills",
+    "description": "Interact with GitHub using the `gh` CLI. Use `gh issue`, `gh pr`, `gh run`, and `gh api` for issues, PRs, CI runs, and advanced queries.",
+    "active": "总库"
+  },
+  {
+    "name": "build-with-ai",
+    "dir": "build-with-ai",
+    "category": "Grok 内置",
+    "source": "xAI Grok bundled",
+    "description": ">",
+    "active": "Grok 内置"
+  },
+  {
+    "name": "code-review",
+    "dir": "code-review",
+    "category": "Grok 内置",
+    "source": "xAI Grok bundled",
+    "description": "Run an extremely strict maintainability review for abstraction quality, giant files, and spaghetti-condition growth. Use for a deep code …",
+    "active": "Grok 内置"
+  },
+  {
+    "name": "create-workflow",
+    "dir": "create-workflow",
+    "category": "Grok 内置",
+    "source": "xAI Grok bundled",
+    "description": ">",
+    "active": "Grok 内置"
+  },
+  {
+    "name": "design",
+    "dir": "design",
+    "category": "Grok 内置",
+    "source": "xAI Grok bundled",
+    "description": "Run the full design-doc-writer and design-doc-reviewer loop until consensus. Produces a polished design document with a PR plan.",
+    "active": "Grok 内置"
+  },
+  {
+    "name": "docx",
+    "dir": "docx",
+    "category": "Grok 内置",
+    "source": "xAI Grok bundled",
+    "description": "Use this skill whenever the user wants to create, read, edit, or manipulate Word documents (.docx or .dotx files). Triggers include any m…",
+    "active": "Grok 内置"
+  },
+  {
+    "name": "execute-plan",
+    "dir": "execute-plan",
+    "category": "Grok 内置",
+    "source": "xAI Grok bundled",
+    "description": "Execute a PR Plan DAG from a design document. Parses the plan, topologically sorts it, implements PRs in parallel using worktree-isolated…",
+    "active": "Grok 内置"
+  },
+  {
+    "name": "game-animation-frames",
+    "dir": "game-animation-frames",
+    "category": "Grok 内置",
+    "source": "xAI Grok bundled",
+    "description": ">",
+    "active": "Grok 内置"
+  },
+  {
+    "name": "game-asset-core",
+    "dir": "game-asset-core",
+    "category": "Grok 内置",
+    "source": "xAI Grok bundled",
+    "description": ">",
+    "active": "Grok 内置"
+  },
+  {
+    "name": "game-character-consistency",
+    "dir": "game-character-consistency",
+    "category": "Grok 内置",
+    "source": "xAI Grok bundled",
+    "description": ">",
+    "active": "Grok 内置"
+  },
+  {
+    "name": "game-tilesets",
+    "dir": "game-tilesets",
+    "category": "Grok 内置",
+    "source": "xAI Grok bundled",
+    "description": ">",
+    "active": "Grok 内置"
+  },
+  {
+    "name": "game-ui-icons",
+    "dir": "game-ui-icons",
+    "category": "Grok 内置",
+    "source": "xAI Grok bundled",
+    "description": ">",
+    "active": "Grok 内置"
+  },
+  {
+    "name": "imagine",
+    "dir": "imagine",
+    "category": "Grok 内置",
+    "source": "xAI Grok bundled",
+    "description": ">",
+    "active": "Grok 内置"
+  },
+  {
+    "name": "implement",
+    "dir": "implement",
+    "category": "Grok 内置",
+    "source": "xAI Grok bundled",
+    "description": ">-",
+    "active": "Grok 内置"
+  },
+  {
+    "name": "pdf",
+    "dir": "pdf",
+    "category": "Grok 内置",
+    "source": "xAI Grok bundled",
+    "description": "Read, create, and transform PDF files. Covers pulling text and tables out of PDFs, generating new PDFs, merging and splitting documents, …",
+    "active": "Grok 内置"
+  },
+  {
+    "name": "pptx",
+    "dir": "pptx",
+    "category": "Grok 内置",
+    "source": "xAI Grok bundled",
+    "description": "Use this skill any time a .pptx file is involved in any way — as input, output, or both. This includes creating slide decks, pitch decks,…",
+    "active": "Grok 内置"
+  },
+  {
+    "name": "pr-babysit",
+    "dir": "pr-babysit",
+    "category": "Grok 内置",
+    "source": "xAI Grok bundled",
+    "description": ">-",
+    "active": "Grok 内置"
+  },
+  {
+    "name": "resume-claude",
+    "dir": "resume-claude",
+    "category": "Grok 内置",
+    "source": "xAI Grok bundled",
+    "description": ">",
+    "active": "Grok 内置"
+  },
+  {
+    "name": "resume-codex",
+    "dir": "resume-codex",
+    "category": "Grok 内置",
+    "source": "xAI Grok bundled",
+    "description": ">",
+    "active": "Grok 内置"
+  },
+  {
+    "name": "resume-cursor",
+    "dir": "resume-cursor",
+    "category": "Grok 内置",
+    "source": "xAI Grok bundled",
+    "description": ">",
+    "active": "Grok 内置"
+  },
+  {
+    "name": "review",
+    "dir": "review",
+    "category": "Grok 内置",
+    "source": "xAI Grok bundled",
+    "description": ">-",
+    "active": "Grok 内置"
+  },
+  {
+    "name": "skill-design-principles",
+    "dir": "skill-design-principles",
+    "category": "Grok 内置",
+    "source": "xAI Grok bundled",
+    "description": "Concise, high-signal principles for writing and editing skills well. Use whenever authoring or editing a skill.",
+    "active": "Grok 内置"
+  },
+  {
+    "name": "cloudflare",
+    "dir": "cloudflare",
+    "category": "云 / 边缘",
+    "source": "Cloudflare",
+    "description": "Comprehensive Cloudflare platform skill covering Workers, Pages, storage (KV, D1, R2), AI (Workers AI, Vectorize, Agents SDK), feature fl…",
+    "active": "总库"
+  },
+  {
+    "name": "cloudflare-deploy",
+    "dir": "cloudflare-deploy",
+    "category": "云 / 边缘",
+    "source": "Cloudflare",
+    "description": "Deploy applications and infrastructure to Cloudflare using Workers, Pages, and related platform services. Use when the user asks to deplo…",
+    "active": "总库"
+  },
+  {
+    "name": "durable-objects",
+    "dir": "durable-objects",
+    "category": "云 / 边缘",
+    "source": "Cloudflare",
+    "description": "Create and review Cloudflare Durable Objects. Use when building stateful coordination (chat rooms, multiplayer games, booking systems), i…",
+    "active": "总库"
+  },
+  {
+    "name": "edgeone-makers-tools",
+    "dir": "edgeone-makers-tools",
+    "category": "云 / 边缘",
+    "source": "Tencent EdgeOne",
+    "description": ">-",
+    "active": "总库"
+  },
+  {
+    "name": "edgeone-pages-deploy",
+    "dir": "edgeone-pages-deploy",
+    "category": "云 / 边缘",
+    "source": "Tencent EdgeOne",
+    "description": ">-",
+    "active": "总库"
+  },
+  {
+    "name": "edgeone-pages-dev",
+    "dir": "edgeone-pages-dev",
+    "category": "云 / 边缘",
+    "source": "Tencent EdgeOne",
+    "description": ">-",
+    "active": "总库"
+  },
+  {
+    "name": "workers-best-practices",
+    "dir": "workers-best-practices",
+    "category": "云 / 边缘",
+    "source": "Cloudflare",
+    "description": "Reviews and authors Cloudflare Workers code against production best practices. Load when writing new Workers, reviewing Worker code, conf…",
+    "active": "总库"
+  },
+  {
+    "name": "wrangler",
+    "dir": "wrangler",
+    "category": "云 / 边缘",
+    "source": "Cloudflare",
+    "description": "Cloudflare Workers CLI for deploying, developing, and managing Workers, KV, R2, D1, Vectorize, Hyperdrive, Workers AI, Containers, Queues…",
+    "active": "总库"
+  },
+  {
+    "name": "code-simplifier-py",
+    "dir": "code-simplifier-py",
+    "category": "代码质量",
+    "source": "开源代码简化技能",
+    "description": "Behavior-preserving Python refactor for readability (PEP 8, Pythonic idioms, minimal SOLID).",
+    "active": "总库"
+  },
+  {
+    "name": "code-simplifier-rust",
+    "dir": "code-simplifier-rust",
+    "category": "代码质量",
+    "source": "开源代码简化技能",
+    "description": "Behavior-preserving Rust refactor for idiomatic clarity and maintainability (ownership-aware).",
+    "active": "总库"
+  },
+  {
+    "name": "code-simplifier-ts",
+    "dir": "code-simplifier-ts",
+    "category": "代码质量",
+    "source": "开源代码简化技能",
+    "description": "Behavior-preserving TypeScript/JavaScript refactor for clarity and maintainability (respects repo ESM/CJS setup).",
+    "active": "总库"
+  },
+  {
+    "name": "vercel-composition-patterns",
+    "dir": "composition-patterns",
+    "category": "前端",
+    "source": "Vercel",
+    "description": "—",
+    "active": "总库"
+  },
+  {
+    "name": "vercel-react-best-practices",
+    "dir": "react-best-practices",
+    "category": "前端",
+    "source": "Vercel",
+    "description": "React and Next.js performance optimization guidelines from Vercel Engineering. This skill should be used when writing, reviewing, or refa…",
+    "active": "全局"
+  },
+  {
+    "name": "vercel-react-best-practices",
+    "dir": "vercel-react-best-practices",
+    "category": "前端",
+    "source": "Vercel",
+    "description": "React and Next.js performance optimization guidelines from Vercel Engineering. This skill should be used when writing, reviewing, or refa…",
+    "active": "总库"
+  },
+  {
+    "name": "linear",
+    "dir": "linear",
+    "category": "协作",
+    "source": "Linear",
+    "description": "Manage issues, projects & team workflows in Linear. Use when the user wants to read, create or updates tickets in Linear.",
+    "active": "总库"
+  },
+  {
+    "name": "linear-cli",
+    "dir": "linear-cli",
+    "category": "协作",
+    "source": "Linear",
+    "description": "Manage Linear issues from the command line using the linear cli. This skill allows automating linear management.",
+    "active": "全局"
+  },
+  {
+    "name": "supabase",
+    "dir": "supabase",
+    "category": "后端",
+    "source": "Supabase",
+    "description": "Use when doing ANY task involving Supabase. Triggers: Supabase products (Database, Auth, Edge Functions, Realtime, Storage, Vectors, Cron…",
+    "active": "Grok"
+  },
+  {
+    "name": "supabase-postgres-best-practices",
+    "dir": "supabase-postgres-best-practices",
+    "category": "后端",
+    "source": "Supabase",
+    "description": "Postgres best practices maintained by Supabase, for Postgres running anywhere. Load this skill BEFORE writing or changing anything that l…",
+    "active": "Grok"
+  },
+  {
+    "name": "cli-creator",
+    "dir": "cli-creator",
+    "category": "官方通用",
+    "source": "OpenAI skills",
+    "description": "Build a composable CLI for Codex from API docs, an OpenAPI spec, existing curl examples, an SDK, a web app, an admin tool, or a local scr…",
+    "active": "总库"
+  },
+  {
+    "name": "create-skill",
+    "dir": "create-skill",
+    "category": "官方通用",
+    "source": "Anthropic / 文档技能",
+    "description": "Scaffolds new agent skills for the dotnet/skills repository. Use when creating a new skill, generating SKILL.md files, writing a skill de…",
+    "active": "全局"
+  },
+  {
+    "name": "frontend-design",
+    "dir": "frontend-design",
+    "category": "官方通用",
+    "source": "Anthropic / 文档技能",
+    "description": "Guidance for distinctive, intentional visual design when building new UI or reshaping an existing one. Helps with aesthetic direction, ty…",
+    "active": "全局"
+  },
+  {
+    "name": "openai-docs",
+    "dir": "openai-docs",
+    "category": "官方通用",
+    "source": "OpenAI skills",
+    "description": "Use when the user asks how to build with OpenAI products or APIs and needs up-to-date official documentation with citations, help choosin…",
+    "active": "总库"
+  },
+  {
+    "name": "infisical-agent",
+    "dir": "infisical-agent",
+    "category": "密钥 / 配置",
+    "source": "Infisical",
+    "description": "Guide for configuring the Infisical Agent — a client daemon that manages token lifecycle and renders secrets via Go templates without mod…",
+    "active": "总库"
+  },
+  {
+    "name": "infisical-api",
+    "dir": "infisical-api",
+    "category": "密钥 / 配置",
+    "source": "Infisical",
+    "description": "Interact with the Infisical REST API to manage secrets, projects, environments, machine identities, and more. Supports secret CRUD operat…",
+    "active": "总库"
+  },
+  {
+    "name": "infisical-dynamic-secrets",
+    "dir": "infisical-dynamic-secrets",
+    "category": "密钥 / 配置",
+    "source": "Infisical",
+    "description": "Guide for configuring Infisical Dynamic Secrets — on-demand, short-lived credentials for databases, cloud IAM, SSH, and Kubernetes. Cover…",
+    "active": "总库"
+  },
+  {
+    "name": "infisical-secret-syncs",
+    "dir": "infisical-secret-syncs",
+    "category": "密钥 / 配置",
+    "source": "Infisical",
+    "description": "Guide for configuring Infisical Secret Syncs to push secrets from Infisical to third-party services. Covers 38+ sync destinations includi…",
+    "active": "总库"
+  },
+  {
+    "name": "infisical-self-host",
+    "dir": "infisical-self-host",
+    "category": "密钥 / 配置",
+    "source": "Infisical",
+    "description": "Deploy and operate Infisical self-hosted instances with Docker, Docker Compose, and Kubernetes. Covers architecture, environment variable…",
+    "active": "总库"
+  },
+  {
+    "name": "infisical-terraform",
+    "dir": "infisical-terraform",
+    "category": "密钥 / 配置",
+    "source": "Infisical",
+    "description": "|",
+    "active": "总库"
+  },
+  {
+    "name": "infisical-user-setup-guide",
+    "dir": "infisical-setup",
+    "category": "密钥 / 配置",
+    "source": "Infisical",
+    "description": "Interactive setup guide for using Infisical as a secret management tool in your projects. Helps users integrate Infisical into local deve…",
+    "active": "总库"
+  },
+  {
+    "name": "brainstorming",
+    "dir": "brainstorming",
+    "category": "工作流",
+    "source": "obra/superpowers",
+    "description": "You MUST use this before any creative work - creating features, building components, adding functionality, or modifying behavior. Explore…",
+    "active": "总库"
+  },
+  {
+    "name": "brief2flow",
+    "dir": "brief2flow",
+    "category": "工作流",
+    "source": "开源工作流技能",
+    "description": "Define how an agent should initialize or optimize workflow blueprint docs in Markdown (workflow.blueprint.md) for a workflow workspace di…",
+    "active": "总库"
+  },
+  {
+    "name": "create-plan",
+    "dir": "create-plan",
+    "category": "工作流",
+    "source": "开源工作流技能",
+    "description": "Create a concise plan. Use when a user explicitly asks for a plan related to a coding task.",
+    "active": "总库"
+  },
+  {
+    "name": "Prompt Enhancer",
+    "dir": "prompt-enhancer",
+    "category": "技能工具",
+    "source": "开源技能工具",
+    "description": "Transform vague prompts into actionable specs using intelligent analysis and session memory. Use when user input contains -e or --enhance…",
+    "active": "总库"
+  },
+  {
+    "name": "find-skills",
+    "dir": "find-skills",
+    "category": "技能工具",
+    "source": "技能发现",
+    "description": "Helps users discover and install agent skills when they ask questions like \"how do I do X\", \"find a skill for X\", \"is there a skill that …",
+    "active": "全局"
+  },
+  {
+    "name": "skill-generator",
+    "dir": "skill-generator",
+    "category": "技能工具",
+    "source": "开源技能工具",
+    "description": "Meta-skill for creating new Claude Code skills with configurable execution modes. Supports sequential (fixed order) and autonomous (state…",
+    "active": "总库"
+  },
+  {
+    "name": "tavily-best-practices",
+    "dir": "tavily-best-practices",
+    "category": "搜索",
+    "source": "Tavily",
+    "description": "Build production-ready Tavily integrations with best practices baked in. Reference documentation for developers using coding assistants (…",
+    "active": "总库"
+  },
+  {
+    "name": "tavily-cli",
+    "dir": "tavily-cli",
+    "category": "搜索",
+    "source": "Tavily",
+    "description": "|",
+    "active": "总库"
+  },
+  {
+    "name": "tavily-crawl",
+    "dir": "tavily-crawl",
+    "category": "搜索",
+    "source": "Tavily",
+    "description": "|",
+    "active": "总库"
+  },
+  {
+    "name": "tavily-dynamic-search",
+    "dir": "tavily-dynamic-search",
+    "category": "搜索",
+    "source": "Tavily",
+    "description": "|",
+    "active": "总库"
+  },
+  {
+    "name": "tavily-extract",
+    "dir": "tavily-extract",
+    "category": "搜索",
+    "source": "Tavily",
+    "description": "|",
+    "active": "总库"
+  },
+  {
+    "name": "tavily-map",
+    "dir": "tavily-map",
+    "category": "搜索",
+    "source": "Tavily",
+    "description": "|",
+    "active": "总库"
+  },
+  {
+    "name": "tavily-research",
+    "dir": "tavily-research",
+    "category": "搜索",
+    "source": "Tavily",
+    "description": "|",
+    "active": "总库"
+  },
+  {
+    "name": "tavily-search",
+    "dir": "tavily-search",
+    "category": "搜索",
+    "source": "Tavily",
+    "description": "|",
+    "active": "总库"
+  },
+  {
+    "name": "docs-with-mermaid",
+    "dir": "docs-with-mermaid",
+    "category": "文档",
+    "source": "开源文档技能",
+    "description": "Create excellent technical documentation with Mermaid diagrams. Use when documenting code architecture, API flows, database schemas, stat…",
+    "active": "总库"
+  },
+  {
+    "name": "mintlify",
+    "dir": "mintlify",
+    "category": "文档",
+    "source": "Mintlify",
+    "description": "Build and maintain documentation sites with Mintlify. Use when creating docs pages, configuring navigation, adding components, or setting…",
+    "active": "总库"
+  },
+  {
+    "name": "mintlify",
+    "dir": "mintlify-docs",
+    "category": "文档",
+    "source": "Mintlify",
+    "description": "Build and maintain documentation sites with Mintlify. Use when creating docs pages, configuring navigation, adding components, or setting…",
+    "active": "总库"
+  },
+  {
+    "name": "mintlify-api",
+    "dir": "mintlify-api",
+    "category": "文档",
+    "source": "Mintlify",
+    "description": "Interact with the Mintlify REST API to manage deployments, trigger builds, and query documentation site metadata programmatically.",
+    "active": "总库"
+  },
+  {
+    "name": "text-formatter",
+    "dir": "text-formatter",
+    "category": "文档",
+    "source": "开源文档技能",
+    "description": "Transform and optimize text content with intelligent formatting. Output BBCode + Markdown hybrid format optimized for forums. Triggers on…",
+    "active": "总库"
+  },
+  {
+    "name": "hf-cli",
+    "dir": "hf-cli",
+    "category": "模型 / 数据",
+    "source": "Hugging Face",
+    "description": "Hugging Face Hub CLI (`hf`) for downloading, uploading, and managing models, datasets, spaces, buckets, repos, papers, jobs, and more on …",
+    "active": "Grok"
+  },
+  {
+    "name": "huggingface-datasets",
+    "dir": "huggingface-datasets",
+    "category": "模型 / 数据",
+    "source": "Hugging Face",
+    "description": "Use this skill for Hugging Face Dataset Viewer API workflows that fetch subset/split metadata, paginate rows, search text, apply filters,…",
+    "active": "Grok"
+  },
+  {
+    "name": "baseline-ui",
+    "dir": "baseline-ui",
+    "category": "设计",
+    "source": "开源设计技能",
+    "description": "Validates animation durations, enforces typography scale, checks component accessibility, and prevents layout anti-patterns in Tailwind C…",
+    "active": "总库"
+  },
+  {
+    "name": "design-taste-frontend",
+    "dir": "taste-skill",
+    "category": "设计",
+    "source": "开源设计技能",
+    "description": "Senior UI/UX Engineer. Architect digital interfaces overriding default LLM biases. Enforces metric-based rules, strict component architec…",
+    "active": "总库"
+  },
+  {
+    "name": "design-taste-frontend",
+    "dir": "design-taste-frontend",
+    "category": "设计",
+    "source": "开源设计技能",
+    "description": "Anti-slop frontend skill for landing pages, portfolios, and redesigns. The agent reads the brief, infers the right design direction, and …",
+    "active": "总库"
+  },
+  {
+    "name": "fixing-accessibility",
+    "dir": "fixing-accessibility",
+    "category": "设计",
+    "source": "开源设计技能",
+    "description": "Audit and fix HTML accessibility issues including ARIA labels, keyboard navigation, focus management, color contrast, and form errors. Us…",
+    "active": "总库"
+  },
+  {
+    "name": "fixing-motion-performance",
+    "dir": "fixing-motion-performance",
+    "category": "设计",
+    "source": "开源设计技能",
+    "description": "Audit and fix animation performance issues including layout thrashing, compositor properties, scroll-linked motion, and blur effects. Use…",
+    "active": "总库"
+  },
+  {
+    "name": "gpt-taste",
+    "dir": "gpt-taste",
+    "category": "设计",
+    "source": "开源设计技能",
+    "description": "Elite UX/UI & Advanced GSAP Motion Engineer. Enforces Python-driven true randomization for layout variance, strict AIDA page structure, w…",
+    "active": "总库"
+  },
+  {
+    "name": "high-end-visual-design",
+    "dir": "high-end-visual-design",
+    "category": "设计",
+    "source": "开源设计技能",
+    "description": "Teaches the AI to design like a high-end agency. Defines the exact fonts, spacing, shadows, card structures, and animations that make a w…",
+    "active": "总库"
+  },
+  {
+    "name": "make-interfaces-feel-better",
+    "dir": "make-interfaces-feel-better",
+    "category": "设计",
+    "source": "开源设计技能",
+    "description": "Design engineering principles for making interfaces feel polished. Use when building UI components, reviewing frontend code, implementing…",
+    "active": "总库"
+  },
+  {
+    "name": "redesign-existing-projects",
+    "dir": "redesign-existing-projects",
+    "category": "设计",
+    "source": "开源设计技能",
+    "description": "Upgrades existing websites and apps to premium quality. Audits current design, identifies generic AI patterns, and applies high-end desig…",
+    "active": "总库"
+  },
+  {
+    "name": "stitch-design-taste",
+    "dir": "stitch-design-taste",
+    "category": "设计",
+    "source": "开源设计技能",
+    "description": "Semantic Design System Skill for Google Stitch. Generates agent-friendly DESIGN.md files that enforce premium, anti-generic UI standards …",
+    "active": "总库"
+  },
+  {
+    "name": "transitions-dev",
+    "dir": "transitions-dev",
+    "category": "设计",
+    "source": "开源设计技能",
+    "description": "Production-ready CSS transitions for web apps. Use when implementing notification badges, dropdowns, modals, panel reveals, page transiti…",
+    "active": "总库"
+  },
+  {
+    "name": "ui-design-brain",
+    "dir": "ui-design-brain",
+    "category": "设计",
+    "source": "开源设计技能",
+    "description": "Generate production-grade UI using real component patterns and best practices from 60+ documented interface components. Use when the user…",
+    "active": "总库"
+  },
+  {
+    "name": "web-design-guidelines",
+    "dir": "web-design-guidelines",
+    "category": "设计",
+    "source": "开源设计技能",
+    "description": "Review UI code for Web Interface Guidelines compliance. Use when asked to \"review my UI\", \"check accessibility\", \"audit design\", \"review …",
+    "active": "总库"
+  },
+  {
+    "name": "lark-approval",
+    "dir": "lark-approval",
+    "category": "飞书",
+    "source": "Lark / 飞书官方技能",
+    "description": "飞书审批：查询和处理审批待办/已办/实例，搜索可发起审批定义、查看定义详情并发起原生审批实例。当用户要处理审批任务、查看审批实例、搜索或发起审批时使用。审批待办不是飞书任务；非审批类待办走 lark-task。不负责创建审批定义；三方审批定义不走原生提单。",
+    "active": "总库"
+  },
+  {
+    "name": "lark-apps",
+    "dir": "lark-apps",
+    "category": "飞书",
+    "source": "Lark / 飞书官方技能",
+    "description": "妙搭（Spark/Miaoda）应用开发与托管：应用创建、本地全栈开发、云端生成迭代、创意设计（UI mockup / 可交互原型 / 线框图 / 落地页 / 仪表盘 / 幻灯片 deck / 视觉探索）、AI相关能力和飞书平台能力或者其他外部能力集成、日志/Trace/监…",
+    "active": "总库"
+  },
+  {
+    "name": "lark-attendance",
+    "dir": "lark-attendance",
+    "category": "飞书",
+    "source": "Lark / 飞书官方技能",
+    "description": "飞书考勤打卡：查询自己的考勤打卡记录",
+    "active": "总库"
+  },
+  {
+    "name": "lark-base",
+    "dir": "lark-base",
+    "category": "飞书",
+    "source": "Lark / 飞书官方技能",
+    "description": "飞书多维表格（Base）操作：建表、字段、记录、视图、统计、公式/lookup、表单、仪表盘、应用模式（BaseApp/AppMode 页面与组件）、Workspace 目录、workflow、角色权限；遇到 Base/多维表格/bitable、BaseApp/AppMod…",
+    "active": "全局"
+  },
+  {
+    "name": "lark-calendar",
+    "dir": "lark-calendar",
+    "category": "飞书",
+    "source": "Lark / 飞书官方技能",
+    "description": "飞书日历：管理日历日程和会议室。查看/搜索日程、创建/更新日程、管理参会人、查询忙闲和推荐时段、预定会议室。当用户需要查看日程安排、创建/修改会议、查询/预定会议室时使用。不负责：查询过去的视频会议记录（走 lark-vc）、待办任务（走 lark-task）。",
+    "active": "全局"
+  },
+  {
+    "name": "lark-contact",
+    "dir": "lark-contact",
+    "category": "飞书",
+    "source": "Lark / 飞书官方技能",
+    "description": "飞书 / Lark 通讯录:按姓名 / 邮箱解析成 open_id,或按 open_id 反查姓名 / 部门 / 邮箱 / 联系方式 / 个人状态 / 签名,以及按关键词搜索当前用户可见的机器人 / 智能体(agent)。当用户提到一个名字要下一步发消息 / 排日程,或拿到…",
+    "active": "全局"
+  },
+  {
+    "name": "lark-doc",
+    "dir": "lark-doc",
+    "category": "飞书",
+    "source": "Lark / 飞书官方技能",
+    "description": "飞书云文档（Docx / Wiki）内容操作：读取、创建、编辑文档，插入或下载图片附件，以及操作思维笔记。用户提供文档 URL/token（包括 doubao.com 的 /docx/、/wiki/）时使用；按 URL 路径/token 而非域名路由。文档内嵌资源按读取参考…",
+    "active": "全局"
+  },
+  {
+    "name": "lark-drive",
+    "dir": "lark-drive",
+    "category": "飞书",
+    "source": "Lark / 飞书官方技能",
+    "description": "飞书云空间（云盘/云存储）：管理 Drive 文件和文件夹，包含上传/下载、创建文件夹、复制/移动/删除、查看元数据、查询权限设置、评论/权限/订阅、标题、版本、飞书文档密级标签（secure labels）和本地文件导入。用户需要整理云盘目录、处理云空间资源 URL/to…",
+    "active": "全局"
+  },
+  {
+    "name": "lark-event",
+    "dir": "lark-event",
+    "category": "飞书",
+    "source": "Lark / 飞书官方技能",
+    "description": "Lark/Feishu real-time event listening / subscribing / consuming: stream events as NDJSON via `lark-cli event consume <EventKey>` (covers …",
+    "active": "总库"
+  },
+  {
+    "name": "lark-im",
+    "dir": "lark-im",
+    "category": "飞书",
+    "source": "Lark / 飞书官方技能",
+    "description": "飞书即时通讯：收发消息和管理群聊。发送和回复消息、搜索聊天记录、管理群聊成员、上传下载图片和文件、管理表情回复、发送应用内/短信/电话加急、发送和处理交互卡片（Interactive Card）、监听卡片按钮回调（card.action.trigger）。当用户需要发消息、…",
+    "active": "全局"
+  },
+  {
+    "name": "lark-mail",
+    "dir": "lark-mail",
+    "category": "飞书",
+    "source": "Lark / 飞书官方技能",
+    "description": "飞书邮箱：Use when user mentions 起草邮件、写邮件、草稿、发送/回复/转发邮件、查阅邮件、看邮件、搜索邮件、邮件文件夹、邮件标签、邮件联系人、监听新邮件、邮件收信规则等；use for mail/email intent only. Do not us…",
+    "active": "全局"
+  },
+  {
+    "name": "lark-markdown",
+    "dir": "lark-markdown",
+    "category": "飞书",
+    "source": "Lark / 飞书官方技能",
+    "description": "飞书 Markdown：查看、创建、上传、编辑和比较 Markdown 文件。当用户需要创建或编辑 Markdown 文件、读取、修改、局部 patch 或比较差异时使用。不负责将 Markdown 导入为飞书在线文档，也不负责文件搜索、权限、评论、移动、删除等云空间管理操作。",
+    "active": "总库"
+  },
+  {
+    "name": "lark-mcp",
+    "dir": "lark-mcp",
+    "category": "飞书",
+    "source": "Lark / 飞书官方技能",
+    "description": "飞书/Lark 官方 MCP 集成。支持发送消息、创建群组、操作多维表格（Bitable）、导入/搜索文档、知识库查询。触发词：飞书、Feishu、Lark、多维表格、bitable、飞书文档、飞书群。",
+    "active": "全局"
+  },
+  {
+    "name": "lark-minutes",
+    "dir": "lark-minutes",
+    "category": "飞书",
+    "source": "Lark / 飞书官方技能",
+    "description": "飞书妙记：搜索妙记、查看妙记基础信息、下载/上传音视频、读取或编辑妙记的产物内容、改标题、替换说话人/关键词、申请妙记查看/编辑权限。当给出minute_token、本地音视频文件，要查/改/转妙记产物，或用户明确要主动申请妙记权限时使用；本地音视频转纪要/逐字稿优先走本 …",
+    "active": "总库"
+  },
+  {
+    "name": "lark-note",
+    "dir": "lark-note",
+    "category": "飞书",
+    "source": "Lark / 飞书官方技能",
+    "description": "飞书会议纪要（Note）直查：已知 note_id 时查询纪要详情、展示类型、关联文档 token，并读取 unified 原始逐字记录。当用户已持有 note_id，或从文档显式 vc-node-id 获得 note_id 时使用。不负责会议/日程/妙记定位、文档标题搜索…",
+    "active": "总库"
+  },
+  {
+    "name": "lark-okr",
+    "dir": "lark-okr",
+    "category": "飞书",
+    "source": "Lark / 飞书官方技能",
+    "description": "飞书 OKR：管理目标与关键结果。查看和编辑 OKR 周期、目标、关键结果、对齐关系、量化指标和进展记录。当用户需要查看或创建 OKR、管理目标和关键结果、查看对齐关系时使用。不负责：待办任务管理（lark-task）、日程/会议安排（lark-calendar）、绩效评估",
+    "active": "总库"
+  },
+  {
+    "name": "lark-shared",
+    "dir": "lark-shared",
+    "category": "飞书",
+    "source": "Lark / 飞书官方技能",
+    "description": "Use for lark-cli setup/auth tasks: auth login/status/logout, user vs bot identity, business-domain permissions (--domain, including all/d…",
+    "active": "全局"
+  },
+  {
+    "name": "lark-sheets",
+    "dir": "lark-sheets",
+    "category": "飞书",
+    "source": "Lark / 飞书官方技能",
+    "description": "飞书电子表格：创建和操作电子表格。支持创建表格、管理工作表与行列结构（增删/合并/调整尺寸/隐藏/冻结）、读写单元格（值/公式/样式/批注/单元格图片）、查找替换、多操作批量更新，以及图表、透视表、条件格式、筛选器、迷你图、浮动图片等对象的创建与维护。当用户需要创建电子表格…",
+    "active": "全局"
+  },
+  {
+    "name": "lark-slides",
+    "dir": "lark-slides",
+    "category": "飞书",
+    "source": "Lark / 飞书官方技能",
+    "description": "飞书幻灯片：创建和编辑幻灯片。创建演示文稿、读取幻灯片内容、管理幻灯片页面（创建、删除、读取、局部替换）。当用户需要创建或编辑幻灯片、读取或修改单个页面时使用。当用户给出 doubao.com 的 /slides/ URL/token 时，也应直接使用本 skill，不要因…",
+    "active": "总库"
+  },
+  {
+    "name": "lark-task",
+    "dir": "lark-task",
+    "category": "飞书",
+    "source": "Lark / 飞书官方技能",
+    "description": "飞书任务：管理任务、清单和任务智能体。创建待办任务、查看和更新任务状态、拆分子任务、组织任务清单、分配协作成员、上传任务附件、注册或注销任务智能体、更新任务智能体的主页数据、写入智能体任务记录。当用户需要创建待办事项、查看任务列表、跟踪任务进度、管理项目清单或给他人分配任务…",
+    "active": "全局"
+  },
+  {
+    "name": "lark-vc",
+    "dir": "lark-vc",
+    "category": "飞书",
+    "source": "Lark / 飞书官方技能",
+    "description": "飞书视频会议：查询进行中的会议列表（含会议 ID）、读取会中实时内容（发言、聊天、共享等）、发送会中消息，以及搜索历史会议、查询会议纪要（总结/待办/章节/逐字稿）和参会人快照。Agent 真实入会/离会走 lark-vc-agent；查询未来日程走 lark-calendar。",
+    "active": "总库"
+  },
+  {
+    "name": "lark-vc-agent",
+    "dir": "lark-vc-agent",
+    "category": "飞书",
+    "source": "Lark / 飞书官方技能",
+    "description": "飞书视频会议会中能力：用于让应用机器人真实加入或离开正在进行的会议，并读取当前身份可见的会中事件、发送会中文本消息或会中表情。适用于用户询问正在开的会议发生了什么、谁在发言、是否共享内容，或需要发现当前可读的进行中会议 ID。不负责已结束会议搜索、参会人快照、纪要、逐字稿或…",
+    "active": "总库"
+  },
+  {
+    "name": "lark-whiteboard",
+    "dir": "lark-whiteboard",
+    "category": "飞书",
+    "source": "Lark / 飞书官方技能",
+    "description": ">",
+    "active": "总库"
+  },
+  {
+    "name": "lark-whiteboard-cli",
+    "dir": "lark-whiteboard-cli",
+    "category": "飞书",
+    "source": "Lark / 飞书官方技能",
+    "description": ">",
+    "active": "总库"
+  },
+  {
+    "name": "lark-wiki",
+    "dir": "lark-wiki",
+    "category": "飞书",
+    "source": "Lark / 飞书官方技能",
+    "description": "飞书知识库：管理知识空间、空间成员和文档节点。创建和查询知识空间、查看和管理空间成员、管理节点层级结构、在知识库中组织文档和快捷方式。当用户需要在知识库中查找或创建文档、浏览知识空间结构、查看或管理空间成员、移动或复制节点时使用。当用户给出 doubao.com 的 /wi…",
+    "active": "全局"
+  }
+]

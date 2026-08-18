@@ -1,3 +1,13 @@
+# ticoAg's notes
+
+Mintlify 文档站：个人笔记 + AI 智能体资源目录。
+
+写文档前读仓库内 skill（软链到总库，不要在仓库里复制一份）：
+
+- `.agents/skills/mintlify`
+- `.agents/skills/mintlify-docs`
+- `.agents/skills/mintlify-api`
+
 # Mintlify 起步套件
 
 使用本起步套件，可以快速完成文档站点的部署，并开始进行个性化定制。

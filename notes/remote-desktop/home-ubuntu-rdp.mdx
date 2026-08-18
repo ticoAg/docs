@@ -1,0 +1,178 @@
+---
+title: "家用 Ubuntu 微软远程桌面"
+description: "用 Windows App 连家用 Ubuntu 的 GNOME，含 frp、Clash DIRECT、UFW 和会话踩坑。"
+type: Runbook
+tags: [rdp, xrdp, ubuntu, clash]
+timestamp: 2026-08-18T00:00:00Z
+---
+
+用 Mac 上的 **Windows App**（原 Microsoft Remote Desktop）连家里那台 Ubuntu 主机。
+
+文中地址、端口、主机名、用户名都是占位符，以本机 SSH config / frp 配置为准。
+
+## 怎么连
+
+| 项 | 值 |
+| --- | --- |
+| PC 名称 | `<vps-public-ip>:<rdp-remote-port>` |
+| 用户名 | `<linux-user>` |
+| 密码 | 机器上的 Linux 登录密码 |
+| 网关 | 不填 |
+| 证书 | 自签，选继续 / 信任 |
+| 桌面 | Ubuntu GNOME（顶栏 + 左侧 Dock） |
+
+本机可存一份 `.rdp`（关掉 NLA，`enablecredsspsupport:i:0`）。xrdp 0.9 不完整支持 CredSSP。
+
+备用（组网已通时）：`<mesh-gateway>:<rdp-remote-port>`。这条走入口机的组网网卡，不经过 Clash TUN。
+
+连之前先完全断开旧会话，不要点「重连」到已经死掉的 XFCE / 黑屏会话。
+
+## 链路
+
+```
+Mac Windows App
+  -> <vps-public-ip>:<rdp-remote-port>   入口 VPS 上的 frps
+  -> 127.0.0.1:<xrdp-port>               家用主机上的 xrdp
+  -> Xorg :10 + gnome-session --session=ubuntu
+```
+
+对照已有的 SSH 穿透：`<vps-public-ip>:<ssh-remote-port>` → 家用主机 `:22`。RDP 按同一套 frp 习惯另开一个远程端口。
+
+相关机器：
+
+- 家用主机：Ubuntu 24.04，用户 `<linux-user>`，xrdp 听 `<xrdp-port>`，本机 UFW 未开
+- 入口 VPS：`<vps-public-ip>`，frps，UFW 默认 DROP
+
+frpc 片段：
+
+```toml
+[[proxies]]
+name = "home-rdp"
+type = "tcp"
+localIP = "127.0.0.1"
+localPort = <xrdp-port>
+remotePort = <rdp-remote-port>
+```
+
+改完后 `systemctl restart frpc`。SSH 也走这条 frp，重启会短暂断开 `<ssh-remote-port>`。
+
+## 必开的两道门
+
+公网 TCP 通了还不等于 RDP 能握手。当时踩过两层：
+
+1. **Clash Party TUN**  
+   覆盖规则里若把入口 IP 丢进国内代理组，TUN 会假连通，Windows App 报 **0x204**。  
+   改成 `DIRECT`，并在 tun 里排除：
+
+   ```yaml
+   - IP-CIDR,<vps-public-ip>/32,DIRECT,no-resolve
+   ```
+
+   ```yaml
+   tun:
+     route-exclude-address:
+       - <vps-public-ip>/32
+       - <mesh-cidr>
+   ```
+
+   源文件在 Clash Party 的 override 目录（`~/Library/Application Support/mihomo-party/override/`）里你自己的覆盖 YAML。订阅重载可能把 `work/config.yaml` 盖回去，覆盖规则要留着。
+
+2. **入口 VPS 的 UFW**  
+   frps 已经在听 `<rdp-remote-port>`，但 INPUT 默认 DROP，公网 SYN 被丢。SSH 远程端口若早已放行，RDP 新端口要单独加：
+
+   ```sh
+   ufw allow <rdp-remote-port>/tcp comment 'home RDP via frp'
+   ```
+
+xrdp 进程还要读得了 TLS 私钥。官方做法：
+
+```sh
+sudo adduser xrdp ssl-cert
+sudo systemctl restart xrdp-sesman xrdp
+```
+
+系统用户 `xrdp` 原先不在 `ssl-cert` 组时，微软客户端要的 TLS 会失败，日志里是 `Cannot read private key file /etc/xrdp/key.pem: Permission denied`。
+
+## 桌面怎么起
+
+家用主机上是 **xrdp + xorgxrdp + ubuntu-session**，不要用本机那套没接显示器的 GNOME。
+
+`~/.xsession`：
+
+```sh
+#!/bin/sh
+export DESKTOP_SESSION=ubuntu
+export GNOME_SHELL_SESSION_MODE=ubuntu
+export XDG_CURRENT_DESKTOP=ubuntu:GNOME
+export XDG_SESSION_DESKTOP=ubuntu
+export XDG_CONFIG_DIRS=/etc/xdg/xdg-ubuntu:${XDG_CONFIG_DIRS:-/etc/xdg}
+export XDG_SESSION_TYPE=x11
+export GDK_BACKEND=x11
+export LIBGL_ALWAYS_SOFTWARE=1
+unset WAYLAND_DISPLAY
+unset DBUS_SESSION_BUS_ADDRESS
+exec /usr/bin/gnome-session --session=ubuntu --disable-acceleration-check
+```
+
+`/etc/xrdp/startwm.sh` 在 exec `Xsession` 之前：
+
+```sh
+unset DBUS_SESSION_BUS_ADDRESS
+unset DBUS_SESSION_BUS_PID
+unset DBUS_SESSION_BUS_WINDOWID
+unset WAYLAND_DISPLAY
+export XDG_SESSION_TYPE=x11
+export GDK_BACKEND=x11
+export LIBGL_ALWAYS_SOFTWARE=1
+```
+
+GDM 关掉自动登录，否则 `<linux-user>` 的本机 gnome-shell 会占住 user bus，远程再起一套会秒退：
+
+```ini
+# /etc/gdm3/custom.conf
+AutomaticLoginEnable=false
+WaylandEnable=false
+```
+
+```sh
+sudo apt-get install -y ubuntu-session
+sudo systemctl restart gdm
+```
+
+改完后本机 seat 上只应剩下 `gdm` 的登录界面，`<linux-user>` 名下不能再有 `gnome-shell`。
+
+## 走过的弯路
+
+| 现象 | 原因 | 不要再试 |
+| --- | --- | --- |
+| 连上是 XFCE | `~/.xsession` 里写了 `startxfce4` | 用 Ubuntu 会话替换，不必卸 XFCE |
+| 登录成功后窗口立刻没了 | 同一用户本机 GNOME 还在，远程 gnome-session 0–1 秒退出 | 先关自动登录，再起远程 GNOME |
+| 桌面打开但是纯黑 | 机器没接显示器，`:0` 是 1024×768 空缓冲；x11vnc 抓到的就是黑的 | 不要投 `:0`，用 xrdp 自己的虚拟屏 |
+| Windows App 0x204 | Clash TUN 假连通，或入口 VPS 没放行 RDP 远程端口 | DIRECT + UFW，见上 |
+
+`xrandr` 在没插显示器时所有 HDMI/DP 都是 `disconnected`，`current 1024 x 768`。这种画面投到远程没有意义。
+
+## 排障
+
+```sh
+# 公网端口（应看到 TLS，selected SSL）
+# <vps-public-ip>:<rdp-remote-port>
+
+sudo tail -50 /var/log/xrdp-sesman.log
+sudo tail -50 /var/log/xrdp.log
+# 成功：login successful for user <linux-user> on display 10
+# 失败：Window manager exited quickly / exited with non-zero exit code 1
+
+pgrep -a gnome-shell
+# 远程连上后应有 <linux-user> 的 gnome-session / gnome-shell
+# 本机不应再自动登录一套
+
+sudo tail -20 /var/log/xrdp.log | grep -E 'private key|selected \[SSL\]'
+```
+
+Clash 若再次把入口公网 IP 送进代理，`route -n get <vps-public-ip>` 会走 Clash TUN，RDP 握手超时。排除后应走物理网卡。
+
+## Citations
+
+- [xrdp 配置说明（证书需加入 ssl-cert）](https://github.com/neutrinolabs/xrdp/wiki)
+- [OKF v0.1](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md)
