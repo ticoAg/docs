@@ -1,33 +1,68 @@
 ---
 title: "家用 Ubuntu 微软远程桌面"
-description: "用 Windows App 连家用 Ubuntu 的 GNOME，含 frp、Clash DIRECT、UFW 和会话踩坑。"
+description: "用 Windows App 连家用 Ubuntu 的 GNOME：xrdp 独立会话或镜像本机会话，含 frp、Clash、overlay 假连通和锁屏踩坑。"
 type: Runbook
-tags: [rdp, xrdp, ubuntu, clash]
-timestamp: 2026-08-18T00:00:00Z
+tags: [rdp, xrdp, ubuntu, gnome, clash]
+timestamp: 2026-08-23T00:00:00Z
 ---
 
-用 Mac 上的 **Windows App**（原 Microsoft Remote Desktop）连家里那台 Ubuntu 主机。
+用 Mac 上的 **Windows App**（原 Microsoft Remote Desktop）连家里的 Ubuntu。
 
-文中地址、端口、主机名、用户名都是占位符，以本机 SSH config / frp 配置为准。
+文中地址、端口、主机名、用户名都是占位符，以本机 SSH config / frp / 组网配置为准。
+
+先判断走哪条路，再写 `.rdp`。两条路的认证和客户端开关不一样，混用会表现为窗口还没出来就没了。
+
+## 选哪条路
+
+| | xrdp 独立会话 | GNOME 远程桌面（镜像本机） |
+| --- | --- | --- |
+| 适用 | 本机没有该用户的图形会话，或只留 GDM 登录界面 | 本机已经用同一用户登录了 GNOME |
+| 看到的桌面 | 另一套 Xorg（常见 `:10`） | 本机正在用的那套（`mirror-primary`） |
+| 认证 | Linux 登录密码（PAM） | GNOME 里单独设的 RDP 账密，**不是**自动 PAM |
+| `.rdp` | 关 NLA / CredSSP | 开 NLA / CredSSP |
+| 本机登出后 | 仍可再连进独立会话 | 共享停止 |
+
+同一用户本机已经有 GNOME 时，不要再给 xrdp 起第二套 `gnome-session`。GNOME 50 会直接报 `A graphical session is already running!`，窗口管理器 1–2 秒 SIGABRT，客户端闪退。这时应镜像本机会话。
+
+GNOME 46 仍有 X11 会话时，也可以走 xrdp 独立会话，但本机 seat 上不该再挂着同一用户的 `gnome-shell`。
 
 ## 怎么连
+
+公网（frp）：
 
 | 项 | 值 |
 | --- | --- |
 | PC 名称 | `<vps-public-ip>:<rdp-remote-port>` |
-| 用户名 | `<linux-user>` |
-| 密码 | 机器上的 Linux 登录密码 |
+| 用户名 | `<linux-user>` 或 GNOME 远程桌面里设的用户名 |
+| 密码 | xrdp 用 Linux 密码；GNOME 远程桌面用它自己的 RDP 密码 |
 | 网关 | 不填 |
 | 证书 | 自签，选继续 / 信任 |
-| 桌面 | Ubuntu GNOME（顶栏 + 左侧 Dock） |
 
-本机可存一份 `.rdp`（关掉 NLA，`enablecredsspsupport:i:0`）。xrdp 0.9 不完整支持 CredSSP。
+组网已通时，可直连 overlay 上的 `<overlay-ip>:<listen-port>`，不必绕 frp。这条应走组网网卡，不经过 Clash TUN。
 
-备用（组网已通时）：`<mesh-gateway>:<rdp-remote-port>`。这条走入口机的组网网卡，不经过 Clash TUN。
+连之前先完全断开旧会话，不要点「重连」到已经死掉的 XFCE / 黑屏会话。客户端里若缓存了旧端口，改 `.rdp` 后仍可能连错。
 
-连之前先完全断开旧会话，不要点「重连」到已经死掉的 XFCE / 黑屏会话。
+### `.rdp` 开关
+
+xrdp（0.9 / 0.10 对 CredSSP / GFX 都不完整，Mac Windows App 尤其容易黑屏或秒断）：
+
+```
+enablecredsspsupport:i:0
+enablegfx:i:0
+enablegfxh264:i:0
+```
+
+GNOME 远程桌面（服务端只接受 NLA）：
+
+```
+enablecredsspsupport:i:1
+```
+
+`full address` 里的端口必须等于服务端真实监听端口。xrdp 默认 3389，以 `/etc/xrdp/xrdp.ini` 的 `port=` 和 `ss -lntp` 为准，不要沿用旧文件里的自定义端口。
 
 ## 链路
+
+xrdp + frp：
 
 ```
 Mac Windows App
@@ -38,9 +73,9 @@ Mac Windows App
 
 对照已有的 SSH 穿透：`<vps-public-ip>:<ssh-remote-port>` → 家用主机 `:22`。RDP 按同一套 frp 习惯另开一个远程端口。
 
-相关机器：
+相关角色：
 
-- 家用主机：Ubuntu 24.04，用户 `<linux-user>`，xrdp 听 `<xrdp-port>`，本机 UFW 未开
+- 家用主机：用户 `<linux-user>`，xrdp 听 `<xrdp-port>`，本机 UFW 未开
 - 入口 VPS：`<vps-public-ip>`，frps，UFW 默认 DROP
 
 frpc 片段：
@@ -56,9 +91,22 @@ remotePort = <rdp-remote-port>
 
 改完后 `systemctl restart frpc`。SSH 也走这条 frp，重启会短暂断开 `<ssh-remote-port>`。
 
-## 必开的两道门
+GNOME 远程桌面（镜像本机，组网直连示例）：
 
-公网 TCP 通了还不等于 RDP 能握手。当时踩过两层：
+```
+Mac Windows App
+  -> <overlay-ip>:3389
+  -> gnome-remote-desktop-daemon（用户会话）
+  -> 本机已有 GNOME（mirror-primary）
+```
+
+用户态服务：`systemctl --user enable --now gnome-remote-desktop.service`。`grdctl rdp enable`、关 view-only、设 TLS 证书、`grdctl rdp set-credentials`。空凭据会直接 `Credentials are not set, denying client`。
+
+3389 只能有一个占用方。xrdp 和 GNOME 远程桌面不要同时听这个端口。
+
+## 假连通
+
+公网或 overlay 上 TCP「能连上」还不等于对面在说 RDP。
 
 1. **Clash Party TUN**  
    覆盖规则里若把入口 IP 丢进国内代理组，TUN 会假连通，Windows App 报 **0x204**。  
@@ -84,6 +132,9 @@ remotePort = <rdp-remote-port>
    ufw allow <rdp-remote-port>/tcp comment 'home RDP via frp'
    ```
 
+3. **组网 overlay 用户态 TCP**  
+   开启用户态协议栈 / KCP 代理时，客户端对 **服务端并未监听** 的端口也可能 SYN-ACK，随后立刻断开。本机探测会显示「通」，服务器上 `127.0.0.1:<port>` 却是 Connection refused。以服务器本机 `ss` / 本机回环探测为准，不要用客户端 TCP 通当作 xrdp 在听。
+
 xrdp 进程还要读得了 TLS 私钥。官方做法：
 
 ```sh
@@ -95,7 +146,9 @@ sudo systemctl restart xrdp-sesman xrdp
 
 ## 桌面怎么起
 
-家用主机上是 **xrdp + xorgxrdp + ubuntu-session**，不要用本机那套没接显示器的 GNOME。
+### xrdp 独立会话
+
+用 **xrdp + xorgxrdp + ubuntu-session**，不要投本机那套没接显示器的 `:0`。
 
 `~/.xsession`：
 
@@ -126,7 +179,15 @@ export GDK_BACKEND=x11
 export LIBGL_ALWAYS_SOFTWARE=1
 ```
 
-GDM 关掉自动登录，否则 `<linux-user>` 的本机 gnome-shell 会占住 user bus，远程再起一套会秒退：
+GNOME 46 若出现 **能登录但纯黑**：查 `gsettings get org.gnome.mutter experimental-features`。`scale-monitor-framebuffer` 会画到离屏缓冲，xrdp 抓到的是黑根窗口。xrdp 会话里把它清掉：
+
+```sh
+gsettings set org.gnome.mutter experimental-features "[]"
+```
+
+本机显示器若还要用分数缩放，和 xrdp 会冲突。
+
+GDM 关掉自动登录，否则同一用户的本机 gnome-shell 会占住会话，远程再起一套会秒退：
 
 ```ini
 # /etc/gdm3/custom.conf
@@ -141,13 +202,26 @@ sudo systemctl restart gdm
 
 改完后本机 seat 上只应剩下 `gdm` 的登录界面，`<linux-user>` 名下不能再有 `gnome-shell`。
 
+较新的 Ubuntu（GNOME 49/50）已经没有 X11 的 GNOME Shell 会话。这时不要指望 xrdp + `gnome-session --session=ubuntu`；本机已登录就走镜像，本机未登录就用 GNOME 远程登录（系统服务，虚拟显示器），或换非 GNOME 的 X11 会话。
+
+### 镜像本机会话
+
+本机已经用同一用户登录时：
+
+- `screen-share-mode` 用 `mirror-primary`
+- `view-only` 关掉，否则只能看不能操作
+- 锁屏时 Mutter 会 `Session creation inhibited`，Windows App 窗口还没出来就消失。连之前确认 `loginctl show-session` 的 `LockedHint=no`，或关掉空闲自动锁屏
+- 本机 GNOME 退出后共享即停
+
 ## 走过的弯路
 
 | 现象 | 原因 | 不要再试 |
 | --- | --- | --- |
 | 连上是 XFCE | `~/.xsession` 里写了 `startxfce4` | 用 Ubuntu 会话替换，不必卸 XFCE |
-| 登录成功后窗口立刻没了 | 同一用户本机 GNOME 还在，远程 gnome-session 0–1 秒退出 | 先关自动登录，再起远程 GNOME |
-| 桌面打开但是纯黑 | 机器没接显示器，`:0` 是 1024×768 空缓冲；x11vnc 抓到的就是黑的 | 不要投 `:0`，用 xrdp 自己的虚拟屏 |
+| 登录成功后窗口立刻没了 | 同一用户本机 GNOME 还在，远程 gnome-session 秒退 | 独立会话则先关自动登录；已登录则改镜像本机 |
+| 窗口没打开就消失 | 锁屏 inhibit，或 NLA/凭据与服务端类型不匹配 | 先看服务端是 xrdp 还是 gnome-remote-desktop |
+| 桌面打开但是纯黑 | `:0` 没显示器；或 Mutter `scale-monitor-framebuffer`；或客户端 GFX | 不要投 `:0`；清实验特性；`.rdp` 关 GFX |
+| 客户端觉得端口通、服务器拒绝 | overlay 用户态 TCP 对未监听端口假 SYN-ACK | 在服务器本机探测 |
 | Windows App 0x204 | Clash TUN 假连通，或入口 VPS 没放行 RDP 远程端口 | DIRECT + UFW，见上 |
 
 `xrandr` 在没插显示器时所有 HDMI/DP 都是 `disconnected`，`current 1024 x 768`。这种画面投到远程没有意义。
@@ -155,24 +229,35 @@ sudo systemctl restart gdm
 ## 排障
 
 ```sh
-# 公网端口（应看到 TLS，selected SSL）
-# <vps-public-ip>:<rdp-remote-port>
+# 服务端真实监听（不要只看客户端 TCP）
+ss -lntp | grep -E ':3389|:3390'
+# xrdp 时再确认
+grep '^port=' /etc/xrdp/xrdp.ini
 
+# xrdp
 sudo tail -50 /var/log/xrdp-sesman.log
 sudo tail -50 /var/log/xrdp.log
 # 成功：login successful for user <linux-user> on display 10
-# 失败：Window manager exited quickly / exited with non-zero exit code 1
+# 失败：Window manager exited quickly / SIGABRT / A graphical session is already running
+
+# GNOME 远程桌面
+journalctl --user -u gnome-remote-desktop --since '10 min ago'
+# Credentials are not set, denying client → 没 set-credentials
+# Session creation inhibited → 多半锁屏
+# server supports only NLA Security → 客户端 CredSSP 没开
+
+loginctl show-session <id> -p LockedHint -p Type -p State
+gsettings get org.gnome.mutter experimental-features
 
 pgrep -a gnome-shell
-# 远程连上后应有 <linux-user> 的 gnome-session / gnome-shell
-# 本机不应再自动登录一套
-
-sudo tail -20 /var/log/xrdp.log | grep -E 'private key|selected \[SSL\]'
+# xrdp 独立会话：本机不应再自动登录一套
+# 镜像本机：本机就应该有 gnome-shell
 ```
 
-Clash 若再次把入口公网 IP 送进代理，`route -n get <vps-public-ip>` 会走 Clash TUN，RDP 握手超时。排除后应走物理网卡。
+Clash 若再次把入口公网 IP 送进代理，`route -n get <vps-public-ip>` 会走 Clash TUN，RDP 握手超时。排除后应走物理网卡。组网直连时确认走 overlay 网卡，而不是 Clash 的假 IP。
 
 ## Citations
 
 - [xrdp 配置说明（证书需加入 ssl-cert）](https://github.com/neutrinolabs/xrdp/wiki)
+- [GNOME Remote Desktop](https://gitlab.gnome.org/GNOME/gnome-remote-desktop)
 - [OKF v0.1](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md)
