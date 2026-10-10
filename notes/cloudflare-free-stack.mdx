@@ -215,9 +215,9 @@ wrangler r2 object get my-bucket/myfile.txt --file ./downloaded.txt
 
 实践建议：
 
-- 做公开图片或下载页：可以配置 public bucket 或自定义域名，但要先想清楚缓存、盗链和删除策略。
-- 做用户上传：优先用 Workers 生成受控上传入口，不要把写权限凭据放到浏览器。
-- 做私有文件：用 Workers 校验登录态，再从 R2 读对象返回。
+- 做公开图片或下载页：优先 **R2 + 自定义域名**（生产），不要长期依赖 `r2.dev`；先想清楚缓存、盗链和删除策略。出站流量免费，额度主要看存储和读写次数，详见上文「CDN、Pages 静态资源和 R2」。
+- 做用户上传：优先用 Workers 生成受控上传入口，不要把写权限凭据放到浏览器；生成结果写入 R2，下载走 CDN。
+- 做私有文件：用 Workers 校验登录态，再从 R2 读对象返回；不要把私有响应缓存到公共 CDN。
 
 ### D1：轻量 SQL
 
@@ -288,6 +288,61 @@ npx wrangler dev
 ```
 
 注意：Workers AI 即使在本地开发时也会访问 Cloudflare 账号执行模型调用，可能产生用量计费；做公开接口时要加限流、登录或 Turnstile。
+
+## CDN、Pages 静态资源和 R2：免费额度怎么理解
+
+结论先说清楚：**Pages / 自定义域名后面的静态 CDN 带宽基本免费、不计量**；大量图片放 **R2** 时，真正免费的是 **出站流量（egress）**。免费档会卡住你的是存储量和读写次数，以及 Workers 请求数，不是「CDN 流量费」。
+
+### Pages / 静态 CDN
+
+| 项目 | 免费档大致情况 |
+| ---- | -------------- |
+| 静态文件请求与带宽 | **免费、不计量**（Free / Paid 都一样） |
+| 单站点文件数 | 约 **2 万个文件/项目** |
+| 单文件大小 | 约 **25 MiB**；更大文件应放到 R2 |
+| Pages Functions | 计入 Workers 请求配额，不是「静态带宽」 |
+| 构建次数 | 免费档有月限额（频繁推分支也会消耗） |
+
+官方也建议：站点壳放 Pages（或 Workers Static Assets），超过体积/数量限制的媒体迁到 R2。
+
+### R2：存储 vs 出站 vs 操作次数
+
+| 项目 | 免费档大致情况 |
+| ---- | -------------- |
+| 出站流量（egress） | **免费**——图片反复被下载通常不按 GB 收费 |
+| 存储 | 约 **10 GB/月** |
+| Class A（写入/列表等） | 约 **100 万次/月** |
+| Class B（读取等） | 约 **1000 万次/月** |
+| 生产访问方式 | 绑 **自定义域名**；`r2.dev` 仅开发、有限流，且不好吃到缓存/WAF |
+
+生产图床推荐：`cdn.你的域名.com` → R2 Custom Domain，并开边缘缓存。
+
+### Workers：动态接口才容易顶满免费额度
+
+免费 Workers 大约是 **每天 10 万次请求**、每次 CPU 约 **10 ms**。适合薄代理；不适合把「每次下载大图」都打到 Worker 上。
+
+### 尽量吃满免费资源的用法
+
+1. **站点壳**：Pages 或 Workers Static Assets 放前端（带宽免费）。
+2. **原图 / 成片**：全部进 **R2 + 自定义域名**；带宽免费，主要盯存储和读写次数。
+3. **生成 / 鉴权接口**：单独一个很薄的 Worker；密钥不出前端；生成结果写入 R2，浏览器再从 CDN 拉。
+4. **缓存**：成片 URL 带哈希或版本号，设 `Cache-Control: public, max-age=31536000, immutable`，提高边缘命中，减少 R2 Class B。
+5. **别把大图塞进 Pages**：超过约 25 MiB 或文件数过多就迁 R2。
+6. **省 Workers 额度**：能静态就静态；下载走 CDN，不要每次都打 Worker。
+
+### 结合「很多图存在 R2」的现实判断
+
+- 起步阶段：免费档通常够用（取决于单张大小，大约几千到一两万张中等图量级）。
+- 更容易爆的是：**每天大量实时生成请求**（Workers）和 **频繁未命中缓存的直读**（R2 Class B）。
+- 充分免费资源的形态：**前端免费带宽 + R2 免费出站 + 缓存命中率拉高 + 生成请求尽量少而准**。
+
+相关官方入口：
+
+- [Pages limits](https://developers.cloudflare.com/pages/platform/limits/)
+- [Pages Functions pricing](https://developers.cloudflare.com/pages/functions/pricing/)
+- [Workers pricing](https://developers.cloudflare.com/workers/platform/pricing/)
+- [R2 public buckets](https://developers.cloudflare.com/r2/buckets/public-buckets/)
+- [Cache R2 with custom domain](https://developers.cloudflare.com/cache/interaction-cloudflare-products/r2/)
 
 ## 上线前检查
 
