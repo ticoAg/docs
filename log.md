@@ -1,5 +1,9 @@
 # Directory Update Log
 
+## 2026-10-11
+
+* **Creation**: 写入 Infisical 自托管手册（部署、域名/HTTPS、排障、验收清单）及去敏后的 `.env` / Compose / Nginx 示例。不含真实 IP、密码或账户信息。
+
 ## 2026-08-23
 
 * **Update**: 家用 Ubuntu 远程桌面 runbook 补充通用经验：xrdp 独立会话 vs 镜像本机 GNOME、overlay 用户态 TCP 假连通、GNOME 46 离屏渲染黑屏、同用户第二套 gnome-session 秒退、锁屏 `Session creation inhibited`、以及两套服务的 `.rdp` / NLA 差异。不含具体主机或地址。

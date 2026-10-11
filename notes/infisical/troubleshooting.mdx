@@ -1,0 +1,130 @@
+---
+title: "Infisical 排障"
+description: "自托管 Infisical 已确认的坑：ENCRYPTION_KEY Invalid key length、Redis 回环、80 端口归属、SITE_URL、SMTP 噪音"
+---
+
+下面几条不是泛泛的「可能问题」，而是这次落地里真实踩过、并且会再次误导判断的点。按现象反查。
+
+## 已确认的坑
+
+### 1. `ENCRYPTION_KEY` 长度/格式错误 → `Invalid key length`
+
+**现象：** 容器反复重启。日志在 KMS / cipher 初始化附近报 `RangeError: Invalid key length`。前后往往还有数据库相关日志，看起来像迁移挂了。
+
+**原因：** 非 FIPS 部署要求 `ENCRYPTION_KEY` 为 **16 字节 hex（32 个十六进制字符）**。用 `openssl rand -base64 32`（这是 `AUTH_SECRET` 的算法）、`openssl rand -hex 32`（64 个 hex 字符）、或任意口令，都会在 `createCipheriv` 处炸掉。
+
+**处理：**
+
+1. 用[部署手册里的校验脚本](/notes/infisical/deployment#encryption_key-与-invalid-key-length)看长度，不要先重建数据库。
+2. 在目标机器上重新 `openssl rand -hex 16`，写入 `.env`。
+3. `docker compose up -d --force-recreate backend`，再看日志和 `/api/status`。
+
+<Warning>
+    只在**尚未写入业务密文**时更换 `ENCRYPTION_KEY`。已经有数据时，换钥匙等于丢失旧密文。
+</Warning>
+
+### 2. Redis 在宿主机暴露了端口，容器却连不上
+
+**现象：** `REDIS_URL=redis://127.0.0.1:6379` 或 `redis://<host-ip>:6379` 失败。宿主机 `redis-cli ping` 是 `PONG`。`docker ps` 也能看到 `127.0.0.1:6379->6379/tcp`。
+
+**原因：** 发布到宿主机回环的端口，只给「这台机器上的进程」用。Infisical 在另一个网络命名空间里，它的 `127.0.0.1` 是容器自己。Redis 若 `bind 127.0.0.1`，邻居容器从 Docker 网桥过来的包也会被拒。
+
+**处理：** 把 Redis 和 Infisical 放进同一外部网络，改用服务名：
+
+```env
+REDIS_URL=redis://:password@redis:6379
+```
+
+用 `docker run --rm --network shared-network busybox:1.36 nc -zv redis 6379` 验证。不要用「宿主机能 ping 通」当容器内连通的证据。
+
+### 3. 80 被占用 ≠ 只能走 1Panel 网站模块
+
+**现象：** Compose 想映射 `80:8080` 失败，或准备在面板里加站点。机器上装着 1Panel，于是默认改面板。
+
+**原因：** 占用 80 的是系统 Nginx（`nginx.service`）。1Panel 在不负责 80 的时候，硬切网站模块会动到已经在跑的其它站点。
+
+**处理：**
+
+```bash
+ss -ltnp | awk 'NR==1 || /:80 /'
+```
+
+归属是系统 Nginx，就把站点放进 `sites-available`，Infisical 映射到 `18080`。端口冲突先查归属，再选改造路径。
+
+### 4. 忘记把 `SITE_URL` 切到正式域名
+
+**现象：** `https://infisical.example.com` 能打开，登录后跳到 `http://127.0.0.1:18080`，或 Cookie / 回调 Host 不对。
+
+**原因：** `.env` 里仍是本机验收地址。Infisical 用 `SITE_URL` 生成跳转和前端根路径。
+
+**处理：**
+
+```env
+SITE_URL=https://infisical.example.com
+```
+
+```bash
+docker compose up -d backend
+curl -sSI https://infisical.example.com | head
+```
+
+证书启用后再改，协议必须是 `https://`。
+
+### 5. SMTP 未配置会打错误日志，主服务仍可用
+
+**现象：** 日志里有 mail / SMTP / 发信失败。容易据此判断「没部署成功」。
+
+**原因：** 邀请、重置密码需要 SMTP；核心 API、UI、secrets 不需要。
+
+**处理：** 用 `/api/status` 和首页判断主路径。需要邮件时再配 `SMTP_*` 并重启。不要为了清掉这几行日志阻塞上线。
+
+## 按层排查
+
+### 容器在跑，业务没就绪
+
+```bash
+docker compose ps
+docker compose logs --tail=200 backend
+curl -sS -o /tmp/infisical-status.json -w '%{http_code}\n' http://127.0.0.1:18080/api/status
+```
+
+`Up` 且 HTTP 不是 200：读日志。优先搜 `Invalid key length`、`ECONNREFUSED`、`password authentication failed`、`database "infisical" does not exist`。
+
+### 数据库
+
+```bash
+docker run --rm --network shared-network -e PGPASSWORD="db_password" \
+  postgres:18-alpine \
+  psql -h postgresql -U db_user -d infisical -c 'SELECT current_database(), current_user;'
+```
+
+库不存在就按[部署手册的数据库初始化](/notes/infisical/deployment#3-数据库初始化)幂等创建。认证失败就核对用户、密码、是否把宿主机账号套到了容器连接串。
+
+### Docker 网络
+
+```bash
+docker network inspect shared-network \
+  --format '{{range .Containers}}{{.Name}} {{.IPv4Address}}{{"\n"}}{{end}}'
+```
+
+列表里应同时有 Infisical、Postgres、Redis。缺谁就把谁的 Compose `networks` 补上并 recreate。
+
+### 反代与证书
+
+```bash
+nginx -t
+curl -sSI -H 'Host: infisical.example.com' http://127.0.0.1 | head
+curl -sSI https://infisical.example.com | head
+```
+
+HTTP 到不了 Infisical：先看 `server_name`、`proxy_pass` 端口是不是 `18080`。HTTPS 失败：灰云下用 `openssl s_client` 看源站证书，不要先开橙色云。
+
+### Cloudflare 代理把问题藏起来
+
+浏览器能打开、`curl` 到源站 IP 失败，或证书显示 Cloudflare。临时切 DNS only，在源站侧复现。源站 HTTPS 正常后再开 `Full (strict)`。
+
+## 不要做的事
+
+- 看见迁移字样就 `docker compose down -v` 或删 Postgres volume。本次架构下数据根本不在 Infisical 的 Compose volume 里，删错的是**共享库**。
+- 把官方 `latest` 重新加回去「先跑起来再说」。
+- 在聊天记录、issue、截图里贴真实 `ENCRYPTION_KEY`、连接串、公网 IP。

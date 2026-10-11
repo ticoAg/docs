@@ -1,0 +1,73 @@
+---
+title: "Infisical 自托管"
+description: "复用已有 PostgreSQL / Redis 和系统 Nginx 的 Infisical 自托管手册：架构、Compose、环境变量、域名 HTTPS、验收和排障"
+---
+
+这份手册把一次可复用的 Infisical 自托管落地写成操作路径：每一步写清要做什么、为什么、怎么做、做完怎么验。官方 Docker Compose 自带数据库和 Redis，不能直接照抄。
+
+<Warning>
+    文中只使用示例值。真实公网 IP、密码、token、Cloudflare 账户、面板账户、本机目录都不要写进文档或提交到 Git。
+</Warning>
+
+| 示例项     | 写法                                              |
+| ---------- | ------------------------------------------------- |
+| 域名       | `infisical.example.com`                           |
+| 数据库     | `db_user` / `db_password` / 库名 `infisical`      |
+| Redis      | `redis://:password@redis:6379`                    |
+| 连接串     | `postgres://db_user:db_password@postgresql:5432/infisical` |
+| 文档 IP    | `203.0.113.10`（RFC 5737 测试网段，不是真实地址） |
+
+## 最终架构
+
+```mermaid
+flowchart LR
+  User[浏览器] --> CF[Cloudflare DNS]
+  CF --> NGX["系统 Nginx :80/:443"]
+  NGX --> APP["Infisical :18080"]
+  APP --> PG["PostgreSQL 服务名 postgresql"]
+  APP --> RD["Redis 服务名 redis"]
+```
+
+| 层           | 谁负责                         | 为什么这样拆                                      |
+| ------------ | ------------------------------ | ------------------------------------------------- |
+| DNS / 可选代理 | Cloudflare                   | 管解析；源站 HTTPS 稳定后再决定是否开橙色云       |
+| 入口         | 系统 Nginx + certbot           | 80/443 已由系统 Nginx 占用，复用比另起一套入口稳  |
+| 应用         | Compose 里的 Infisical 主服务  | 只跑业务进程，镜像钉死 tag                        |
+| 数据         | 已有 PostgreSQL / Redis        | 避免再部署一套有状态服务                          |
+| 互通         | 外部 Docker 网络 `shared-network` | 用服务名直连，不走宿主机 `localhost` 端口绕行  |
+
+这样做的目的：
+
+- 不重复部署 PostgreSQL / Redis，降低备份和升级面。
+- 避免「宿主机端口看起来通了、容器里却连不上」的绕行问题。
+- 入口层（证书、域名、TLS）和业务层（应用、数据）职责分开。
+- 后续扩容、换证书、换域名时不必动数据库。
+
+## 推荐阅读顺序
+
+<CardGroup cols={2}>
+    <Card title="部署手册" icon="container" href="/notes/infisical/deployment">
+        Compose 改造、外部 Postgres/Redis、环境变量、库初始化、首次启动与 `/api/status`。
+    </Card>
+    <Card title="域名与 HTTPS" icon="lock" href="/notes/infisical/domain-https">
+        Cloudflare DNS、系统 Nginx 反代、certbot、以及为什么不走 1Panel 网站模块。
+    </Card>
+    <Card title="排障手册" icon="wrench" href="/notes/infisical/troubleshooting">
+        `Invalid key length`、Redis 回环、80 端口归属、`SITE_URL`、SMTP 噪音。
+    </Card>
+    <Card title="上线验收清单" icon="list-checks" href="/notes/infisical/acceptance">
+        可勾选的上线条目。容器 `Up` 不能单独当验收结论。
+    </Card>
+</CardGroup>
+
+仓库里可直接复制的去敏示例（路径相对于仓库根目录）：
+
+| 文件 | 用途 |
+| ---- | ---- |
+| `notes/infisical/examples/.env.example` | 环境变量模板 |
+| `notes/infisical/examples/docker-compose.yml` | 只保留 Infisical 主服务的 Compose |
+| `notes/infisical/examples/infisical.example.com.conf` | 系统 Nginx 站点配置 |
+
+<Tip>
+    备份 `.env` 里的 `ENCRYPTION_KEY` 和数据库同等重要。没有这把钥匙，还原库也解不开已加密的 secrets。
+</Tip>

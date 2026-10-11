@@ -118,7 +118,17 @@
 							"notes/cloudflare-free-stack",
 							"notes/edgeone-tccli-stack",
 							"notes/yunxiao-devops-stack",
-							"notes/lark-cli-mcp-stack"
+							"notes/lark-cli-mcp-stack",
+							{
+								"group": "Infisical 自托管",
+								"pages": [
+									"notes/infisical/index",
+									"notes/infisical/deployment",
+									"notes/infisical/domain-https",
+									"notes/infisical/troubleshooting",
+									"notes/infisical/acceptance"
+								]
+							}
 						]
 					},
 					{

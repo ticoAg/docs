@@ -1,0 +1,186 @@
+---
+title: "Infisical 域名与 HTTPS"
+description: "Cloudflare DNS、系统 Nginx 反代、certbot 申请证书，以及 80 端口被占用时为什么复用系统 Nginx 而不是 1Panel"
+---
+
+本机 `http://127.0.0.1:18080/api/status` 已经成功之后，再接域名。推荐顺序：先 DNS 到源站，再 HTTP 反代，再 certbot，最后才考虑 Cloudflare 橙色云。
+
+## 推荐顺序
+
+<Steps>
+    <Step title="Cloudflare 添加 A 记录">
+        主机名 `infisical`，类型 `A`，内容填服务器公网 IP（文档示例 `203.0.113.10`）。代理状态先保持 **DNS only**（灰云）。
+    </Step>
+    <Step title="源站 Nginx 做 HTTP 反代">
+        把 `infisical.example.com` 转到 `http://127.0.0.1:18080`。先让 ACME 挑战和浏览器都能打到源站 80。
+    </Step>
+    <Step title="certbot 申请证书并开启跳转">
+        使用 `certbot --nginx`，让它改站点配置、装证书、把 HTTP 重定向到 HTTPS。
+    </Step>
+    <Step title="验证 HTTPS">
+        `curl` 证书和 `/api/status`，并把 `SITE_URL` 改成 `https://infisical.example.com` 后重启 backend。
+    </Step>
+    <Step title="需要时再开 Cloudflare 代理">
+        源站 HTTPS 稳定后，再切橙色云，SSL 模式用 `Full (strict)`。
+    </Step>
+</Steps>
+
+先在源站把 HTTP/HTTPS 做对，排障时才能区分「DNS 错了」和「应用没起来」。一上来开代理、再依赖 Cloudflare 的 Flexible SSL，证书问题会被代理层盖住。
+
+## 为什么用系统 Nginx，而不是 1Panel 网站模块
+
+80 端口冲突时，先查**谁占用**，再决定改造路径。不要看到「80 被占用」就默认是面板、更不要停掉正在干活的入口去换另一套。
+
+```bash
+ss -ltnp | awk 'NR==1 || /:80 /'
+systemctl status nginx --no-pager
+```
+
+本次实践的判断：
+
+1. `ss` 显示 80 属于系统级 `nginx` 进程。
+2. 机器上可能同时装着 1Panel，但 **监听 80 的是 systemd 管的 Nginx**。
+3. 因此把站点加进 `/etc/nginx/sites-available/`，复用现有入口。
+4. 停掉系统 Nginx、改走 1Panel 网站模块，会把已经在 80/443 上的其它站点一起带走，风险更大。
+
+经验结论：端口冲突先查归属，再选路径。1Panel、Caddy、Traefik、Docker 发布端口都可能占用 80，以 `ss` / `lsof` 为准。
+
+## Nginx 反向代理
+
+完整文件：`notes/infisical/examples/infisical.example.com.conf`。
+
+```nginx infisical.example.com.conf
+server {
+    listen 80;
+    listen [::]:80;
+    server_name infisical.example.com;
+
+    client_max_body_size 20m;
+
+    location / {
+        proxy_pass http://127.0.0.1:18080;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_read_timeout 300s;
+        proxy_send_timeout 300s;
+    }
+}
+```
+
+| 指令 | 作用 |
+| ---- | ---- |
+| `server_name` | 只响应这个域名，避免和默认站点抢 Host |
+| `proxy_pass` | 转到 Infisical 在本机映射的 `18080`（容器内 8080） |
+| `Host` | 把浏览器看到的域名传给应用 |
+| `X-Real-IP` / `X-Forwarded-For` | 保留客户端地址，供审计和限流 |
+| `X-Forwarded-Proto` | 告诉应用原始协议。证书启用后这一项决定应用是否认为自己在 HTTPS 上 |
+| `Upgrade` / `Connection` | 兼容 WebSocket / 协议升级 |
+| `client_max_body_size` | 上传体积上限，避免默认 `1m` 截断 |
+| `proxy_*_timeout` | 拉长读写超时，避免较长请求被网关切断 |
+
+启用：
+
+```bash
+ln -s /etc/nginx/sites-available/infisical.example.com \
+      /etc/nginx/sites-enabled/infisical.example.com
+nginx -t
+systemctl reload nginx
+```
+
+Debian/Ubuntu 常见是 `sites-available` / `sites-enabled`。若发行版只用 `conf.d/`，把文件放进 `/etc/nginx/conf.d/` 再 `nginx -t`。
+
+<Check>
+    `curl -sS -H 'Host: infisical.example.com' http://127.0.0.1/api/status` 成功，说明 HTTP 反代已经打到 Infisical。
+</Check>
+
+公网验证（DNS 已指向这台机器、且仍是灰云时）：
+
+```bash
+curl -sS http://infisical.example.com/api/status
+```
+
+## HTTPS 与 certbot
+
+先完成 HTTP 反代，再申请证书。Let’s Encrypt HTTP-01 要在 80 端口用指定路径证明你控制这个域名。Nginx 还没按域名反代时，certbot 即使跑起来，校验也可能打到默认站点。
+
+本次用 `certbot --nginx`，而不是 `--standalone`：standalone 会自己抢 80，和系统 Nginx 冲突；`--nginx` 会识别现有 `server` 块、写入证书路径、按 `--redirect` 加 443 和跳转。
+
+```bash
+apt-get update
+apt-get install -y certbot python3-certbot-nginx
+certbot --nginx -d infisical.example.com \
+  --non-interactive --agree-tos \
+  --register-unsafely-without-email --redirect
+```
+
+| 参数 | 作用 |
+| ---- | ---- |
+| `--nginx` | 调用 Nginx 插件：改配置、reload |
+| `-d` | 证书覆盖的域名 |
+| `--redirect` | 把 80 跳到 443 |
+| `--non-interactive` | 不提问，适合脚本 |
+| `--agree-tos` | 同意 Let’s Encrypt 条款 |
+| `--register-unsafely-without-email` | 不登记邮箱。没有到期邮件提醒，必须依赖自动续期检查 |
+
+<Warning>
+    没有邮箱就收不到证书到期通知。装完后务必确认 `certbot.timer` 或 cron 在跑，并用 `certbot renew --dry-run` 验过。
+</Warning>
+
+续期：
+
+```bash
+systemctl status certbot.timer --no-pager
+certbot renew --dry-run
+```
+
+有的镜像用 cron 而不是 systemd timer。二者有一个在即可：
+
+```bash
+systemctl list-timers | grep certbot || ls /etc/cron.* 2>/dev/null | grep -i cert || true
+```
+
+申请成功后验证：
+
+```bash
+curl -sSI https://infisical.example.com | head
+curl -sS https://infisical.example.com/api/status
+echo | openssl s_client -servername infisical.example.com \
+  -connect infisical.example.com:443 2>/dev/null \
+  | openssl x509 -noout -subject -issuer -dates
+```
+
+期望：HTTP 访问返回 `301`/`308` 到 HTTPS；证书 subject 是 `infisical.example.com`；`/api/status` 在 HTTPS 上成功。
+
+然后把 `.env` 的 `SITE_URL` 改成正式地址并重启：
+
+```env
+SITE_URL=https://infisical.example.com
+```
+
+```bash
+docker compose up -d backend
+```
+
+漏改 `SITE_URL` 时，页面可能仍能打开，但登录跳转、回调、复制出来的链接会指向旧的 `http://127.0.0.1:18080`。
+
+## Cloudflare 怎么用
+
+Cloudflare 负责 **DNS**，以及可选的 **代理（橙色云）**。它不能替代源站 HTTPS。灰云阶段，浏览器直连源站 80/443，certbot 和 `openssl s_client` 看到的就是源站证书，排障最短。
+
+| 阶段 | 代理 | 源站 | Cloudflare SSL/TLS |
+| ---- | ---- | ---- | ------------------ |
+| 接 DNS、申请证书 | DNS only（灰云） | HTTP → 再 HTTPS | 无所谓，流量不经 CF |
+| 源站 HTTPS 已稳定 | 可开橙色云 | 继续维持有效证书 | **Full (strict)** |
+
+为什么要源站自己有正确证书：
+
+- Flexible 模式是浏览器到 Cloudflare 走 HTTPS、Cloudflare 到源站走 HTTP。源站明文、且 Infisical 看到的 `X-Forwarded-Proto` 容易错。
+- Full（非 strict）不校验源站证书，过期或自签也能通，故障会拖到用户侧才暴露。
+- Full (strict) 要求源站呈现可信证书，和 certbot 签发的 Let’s Encrypt 证书匹配。
+
+开橙色云之前再确认一次源站：临时切回灰云，`curl https://infisical.example.com/api/status` 仍成功，再打开代理。

@@ -1,0 +1,302 @@
+---
+title: "Infisical 部署手册"
+description: "改造官方 Compose、接入已有 PostgreSQL/Redis、配置环境变量、初始化数据库，并用 /api/status 验收首次启动"
+---
+
+官方 `docker-compose.prod.yml` 会同时拉起 Infisical、PostgreSQL、Redis，并把应用映射到宿主机 `80`。这套模板适合从零 POC，不适合已经有数据库、缓存和系统 Nginx 的机器。
+
+本页按「改 Compose → 接外部依赖 → 写环境变量 → 建库 → 启动验收」写。域名和证书见 [域名与 HTTPS](/notes/infisical/domain-https)。
+
+## 1. 官方 Compose 不能直接照抄
+
+先下载官方文件，只当作对照，不要原样 `up`：
+
+```bash
+curl -o docker-compose.prod.yml \
+  https://raw.githubusercontent.com/Infisical/infisical/main/docker-compose.prod.yml
+```
+
+| 官方内容 | 本次怎么处理 | 原因 |
+| -------- | ------------ | ---- |
+| `backend` 服务 | **保留并改造** | 这是唯一需要自己跑的 Infisical 进程 |
+| `image: infisical/infisical:latest` | **改成固定 tag** | `latest` 会在某次 `pull` 后不可控升级 |
+| `ports: 80:8080` | **改成 `18080:8080`** | 宿主机 80 已被系统 Nginx 占用 |
+| `pull_policy: always` | **删掉** | 钉死后不应每次启动都强拉镜像 |
+| `depends_on: db / redis` | **删掉** | 数据和缓存不在本 Compose 里 |
+| `db`、`redis` 服务 | **整段删除** | 复用已有实例 |
+| `volumes: pg_data / redis_data` | **删除** | 数据不在本项目的 named volume 里 |
+| 内部网络 `infisical` | **改成外部网络** | 要和现有 Postgres / Redis 互通 |
+
+只保留 Infisical 主服务的原因：有状态组件已经在别的 Compose 或容器里运行，再拉一套会双写、双备份、端口冲突。应用层应当是无本地状态的一个容器。
+
+### 最小可用 Compose
+
+完整文件：`notes/infisical/examples/docker-compose.yml`。
+
+```yaml docker-compose.yml
+services:
+  backend:
+    image: infisical/infisical:${INFISICAL_IMAGE_TAG}
+    container_name: infisical-backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+    ports:
+      - "18080:8080"
+    networks:
+      - shared-network
+
+networks:
+  shared-network:
+    external: true
+    name: shared-network
+```
+
+| 字段 | 作用 |
+| ---- | ---- |
+| `image` + `${INFISICAL_IMAGE_TAG}` | 把版本钉在 `.env` 里。去 Docker Hub 选 `vX.Y.Z`，不要用 `latest` |
+| `env_file` | 集中放连接串和密钥，避免把 secret 写进 Compose |
+| `environment.NODE_ENV` | 生产模式 |
+| `ports` | 只把容器 `8080` 映到本机回环可访问的高位端口，给 Nginx 反代 |
+| `networks.external` | 加入现有网络，用服务名访问 Postgres / Redis |
+
+`INFISICAL_IMAGE_TAG` 的值类似 `v0.166.3`（这是文档编写时 Docker Hub 上可见的发行 tag 形态，以你实际选定的版本为准）。查看标签：
+
+```bash
+# 浏览器打开 https://hub.docker.com/r/infisical/infisical/tags
+# 或
+curl -sS "https://hub.docker.com/v2/repositories/infisical/infisical/tags?page_size=20" \
+  | python3 -c 'import json,sys; d=json.load(sys.stdin); print("\n".join(r["name"] for r in d.get("results",[])))'
+```
+
+<Check>
+    Compose 里已经没有 `db`、`redis` 服务，镜像不是 `latest`，端口不是 `80:8080`。
+</Check>
+
+## 2. 接入已有 PostgreSQL / Redis
+
+目标：Infisical 容器和数据库、缓存跑在**同一 Docker 网络**里，用**服务名**连接。
+
+### 确认它们在 Docker 里，并查出网络名
+
+```bash
+docker ps --format 'table {{.Names}}\t{{.Image}}\t{{.Networks}}\t{{.Ports}}'
+```
+
+挑出 PostgreSQL 和 Redis 的容器名，再看它们加入了哪些网络：
+
+```bash
+docker inspect -f '{{.Name}} {{json .NetworkSettings.Networks}}' postgresql redis
+```
+
+把输出里的网络名记下来。后文一律用示例名 `shared-network`、`postgresql`、`redis`；现场别名以 `docker inspect` 为准。
+
+让 Infisical 加入同一网络，就是 Compose 里声明 `external: true` 的那一段。启动前确认网络已存在：
+
+```bash
+docker network inspect shared-network --format '{{.Name}} {{range .Containers}}{{.Name}} {{end}}'
+```
+
+<Check>
+    `shared-network` 的容器列表里已经能看到 Postgres 和 Redis。还看不到 Infisical 是正常的，它要等 `compose up` 之后才会加入。
+</Check>
+
+### 为什么优先用服务名，而不是 `localhost`
+
+| 写法 | 从谁的视角解析 | 结果 |
+| ---- | -------------- | ---- |
+| `postgresql:5432` | Infisical 容器内的 Docker DNS | 走到对端容器 |
+| `127.0.0.1:5432` | Infisical 容器自己的回环 | 连的是 Infisical 自己，不是宿主机上的库 |
+| 宿主机公网 IP / 映射端口 | 绕出容器、再进宿主机 | 多一跳，且受 `bind` 地址限制 |
+
+如果 Redis 只监听宿主机回环（`127.0.0.1:6379`），即使 `docker ps` 里看到 `127.0.0.1:6379->6379`，**其他容器也连不上**。端口映射给的是「这台机器上的进程」，不是「Docker 网络里的邻居」。正确做法是让 Redis 加入 `shared-network`，并让 Infisical 用 `redis:6379` 连接。
+
+示例连接串：
+
+```env
+DB_CONNECTION_URI=postgres://db_user:db_password@postgresql:5432/infisical
+REDIS_URL=redis://:password@redis:6379
+```
+
+- `postgresql` / `redis` 是共享网络里的 DNS 名示例。
+- 无密码 Redis 写成 `redis://redis:6379`。
+- 实际名称必须换成 `docker inspect` 看到的别名。
+
+从 Infisical 即将使用的网络里探活（把服务名换成现场值）：
+
+```bash
+docker run --rm --network shared-network busybox:1.36 \
+  sh -c 'nc -zv postgresql 5432 && nc -zv redis 6379'
+```
+
+<Check>
+    两个 `nc` 都显示 `open`。失败就先修网络和监听地址，不要急着启动 Infisical。
+</Check>
+
+## 3. 数据库初始化
+
+Infisical **不会**在空的 Postgres 实例上自动创建名为 `infisical` 的数据库。库必须先存在；表结构和迁移由应用启动时执行。
+
+已有 Postgres 但没有目标库时，从**同一个 Docker 网络**里跑客户端。这样走的是服务名，不依赖宿主机有没有暴露 `5432`。
+
+幂等示例：库已存在就跳过，不重复创建。
+
+```bash
+docker run --rm \
+  --network shared-network \
+  -e PGPASSWORD="db_password" \
+  postgres:18-alpine \
+  sh -c '
+    psql -h postgresql -U db_user -d postgres -tAc \
+      "SELECT 1 FROM pg_database WHERE datname = '\''infisical'\''" | grep -q 1 \
+    && echo "database infisical already exists" \
+    || psql -h postgresql -U db_user -d postgres -v ON_ERROR_STOP=1 \
+         -c "CREATE DATABASE \"infisical\" OWNER \"db_user\";"
+  '
+```
+
+客户端镜像 `postgres:18-alpine` 只是 psql 工具版本，应与现场 Postgres 主版本兼容；不是要求你把现有库升级到 18。
+
+为什么不假定库一定在：
+
+- 复用的实例通常已经给别的应用建过库，不会预留 `infisical`。
+- 启动阶段的迁移连的是 `DB_CONNECTION_URI` 里的那个库名。库不存在时，日志看起来像「迁移失败」，根因其实是连接串指向了不存在的 database。
+
+给应用用户的权限需要覆盖建 schema、建表、改表。官方要求：该用户对 Infisical 库具备完整 DDL/DML 权限。
+
+<Check>
+    `psql -h postgresql -U db_user -d infisical -c '\conninfo'` 能连上，且 `\l` 里看得到 `infisical`。
+</Check>
+
+## 4. 关键环境变量
+
+完整模板：`notes/infisical/examples/.env.example`。复制后改名 `.env`：
+
+```bash
+cp notes/infisical/examples/.env.example .env   # 路径按你的工作目录调整
+chmod 600 .env
+```
+
+不要把示例值用于生产。`ENCRYPTION_KEY` 和 `AUTH_SECRET` 必须在目标机器上现生成。
+
+### 必填项
+
+| 变量 | 干什么 | 怎么填 | 填错会怎样 |
+| ---- | ------ | ------ | ---------- |
+| `SITE_URL` | 对外访问根 URL，影响跳转、Cookie、前端资源 | 绝对地址，含协议。本机先验用 `http://127.0.0.1:18080`，域名就绪后改成 `https://infisical.example.com` | 登录跳回错误主机、混合内容、CORS 异常 |
+| `AUTH_SECRET` | 签发认证 token | `openssl rand -base64 32`（32 字节的 Base64） | 登录态无法校验；**不要**把这个值拿去当 `ENCRYPTION_KEY` |
+| `ENCRYPTION_KEY` | 平台加密根密钥 | **必须**是 16 字节 hex，即 **32 个十六进制字符**：`openssl rand -hex 16` | 启动直接 `Invalid key length`，见下文 |
+| `DB_CONNECTION_URI` | Postgres 连接串 | `postgres://db_user:db_password@postgresql:5432/infisical` | 连不上或连错库 |
+| `REDIS_URL` | Redis 连接串 | `redis://:password@redis:6379` | 启动失败或队列/缓存不可用 |
+| `INFISICAL_IMAGE_TAG` | Compose 镜像 tag | `vX.Y.Z`，不要 `latest` | 未设置则 Compose 无法解析镜像 |
+
+`SITE_URL` 必须带协议。`http://infisical.example.com` 和 `https://infisical.example.com` 不是一回事；证书启用后漏改这一项，是上线后最常见的「页面能开、登录乱跳」原因。
+
+### `ENCRYPTION_KEY` 与 Invalid key length
+
+官方约定（非 FIPS 部署）：
+
+```bash
+openssl rand -hex 16
+```
+
+得到的是 **32 个** `[0-9a-f]` 字符，例如形态 `0123456789abcdef0123456789abcdef`（这是格式示例，禁止原样使用）。
+
+| 你可能写成 | 实际是什么 | 结果 |
+| ---------- | ---------- | ---- |
+| `openssl rand -hex 16` | 16 字节 hex，32 个字符 | 正确 |
+| `openssl rand -base64 32` | 这是 `AUTH_SECRET` 的生成法 | `RangeError: Invalid key length` |
+| `openssl rand -hex 32` | 32 字节 hex，64 个字符 | 同样是错误长度 |
+| 随便写的口令、UUID、带引号/换行的值 | 长度或编码都不对 | 同样失败 |
+| FIPS 文档里的 `openssl rand -base64 32` | 仅 FIPS 部署使用 256-bit Base64 | 普通镜像不要套用 |
+
+启动日志里的典型堆栈会经过 KMS / `createCipheriv`，报文是 `Invalid key length`。它出现在服务起来、开始做加密初始化的阶段，**很容易被看成数据库迁移失败**。先量长度，再查 Postgres。
+
+生成并**只检查长度和字符集，不要把密钥打到聊天或工单里**：
+
+```bash
+# 生成（把输出写入本地密码管理器，再贴进 .env）
+openssl rand -hex 16
+openssl rand -base64 32
+```
+
+```bash
+# 校验 .env 里的 ENCRYPTION_KEY，不打印密钥本身
+python3 - <<'PY'
+from pathlib import Path
+import re
+key = ""
+for line in Path(".env").read_text().splitlines():
+    if line.startswith("ENCRYPTION_KEY="):
+        key = line.split("=", 1)[1].strip().strip("'").strip('"')
+        break
+print("length", len(key))
+print("is_32_hex", bool(re.fullmatch(r"[0-9a-fA-F]{32}", key)))
+print("looks_base64", any(ch in key for ch in "+/="))
+PY
+```
+
+期望：`length 32`，`is_32_hex True`，`looks_base64 False`。
+
+<Warning>
+    改 `ENCRYPTION_KEY` 等于换根密钥。已经写入的加密数据无法用新钥匙解开。首次启动前就要定稿并备份；不要在有数据之后「试一个新的」。
+</Warning>
+
+### 可选：SMTP
+
+不配 SMTP 时，邀请用户、重置密码会在日志里报错，**主服务仍可用来登录和管 secrets**。需要邮件时再补 `SMTP_HOST` 等变量并 `docker compose restart backend`。不要把 SMTP 报错当成部署失败。
+
+## 5. 首次启动与验证
+
+<Steps>
+    <Step title="初始化数据库">
+        跑上一节的幂等建库命令。确认 `infisical` 库存在。
+    </Step>
+    <Step title="准备 Compose 目录">
+        放入改造后的 `docker-compose.yml` 和 `.env`。`INFISICAL_IMAGE_TAG`、`ENCRYPTION_KEY`、`AUTH_SECRET`、两条连接串、`SITE_URL` 都已是现场值。
+    </Step>
+    <Step title="启动">
+        ```bash
+        docker compose up -d
+        docker compose ps
+        ```
+
+        `ps` 只能说明容器进程活着。
+    </Step>
+    <Step title="看应用日志">
+        ```bash
+        docker compose logs -f backend
+        ```
+
+        关注：数据库迁移成功、没有 `Invalid key length`、没有 Postgres/Redis 连接拒绝。SMTP 报错可以先记下，不阻塞这一步。
+    </Step>
+    <Step title="打健康检查">
+        ```bash
+        curl -sS http://127.0.0.1:18080/api/status
+        ```
+
+        期望 HTTP 200，JSON 里是成功/就绪一类状态，而不是 5xx 或空响应。
+    </Step>
+    <Step title="打开首页">
+        浏览器访问 `http://127.0.0.1:18080`。第一个注册的用户会成为实例管理员，完成后再考虑把端口暴露给别人。
+    </Step>
+</Steps>
+
+```bash
+docker compose up -d
+docker compose ps
+docker compose logs -f backend
+curl -sS http://127.0.0.1:18080/api/status
+```
+
+| 检查 | 能证明什么 | 不能证明什么 |
+| ---- | ---------- | ------------ |
+| `docker compose ps` 为 `Up` | 容器没立刻退出 | 迁移完成、依赖连上、HTTP 可用 |
+| 日志无 `Invalid key length` | 加密密钥长度过关 | 域名和 TLS 正确 |
+| `GET /api/status` 成功 | 应用完成启动并开始服务 | 对外域名、证书、`SITE_URL` 已切换 |
+
+<Check>
+    本机 `/api/status` 成功之后，再去做 Nginx 和证书。不要反过来。
+</Check>

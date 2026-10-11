@@ -67,6 +67,16 @@ node scripts/stars/check-star-lists.mjs
 - 脚本：`scripts/update-agent-ecosystem.mjs`
 - 触发方式：定时（每周）或手动触发；工作流会自动创建 PR（避免每次 push 后自动写回 main，导致本地频繁需要 pull）
 
+### 3) Infisical 自托管手册
+
+入口：`notes/infisical/index.mdx`（部署、域名/HTTPS、排障、验收清单）。
+
+去敏示例（不要填入真实密钥或 IP）：
+
+- `notes/infisical/examples/.env.example`
+- `notes/infisical/examples/docker-compose.yml`
+- `notes/infisical/examples/infisical.example.com.conf`
+
 ## 发布变更
 
 在你的 [dashboard](https://dashboard.mintlify.com/settings/organization/github-app) 安装我们的 GitHub App，用于将仓库变更同步到线上部署。将更改推送到默认分支后，会自动部署到生产环境。
