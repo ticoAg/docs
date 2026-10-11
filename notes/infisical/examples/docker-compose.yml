@@ -1,0 +1,23 @@
+# Infisical backend only. Official docker-compose.prod.yml is not copy-paste
+# ready: drop the bundled db/redis services, pin the image tag, and join the
+# existing Docker network that already holds PostgreSQL and Redis.
+
+services:
+  backend:
+    image: infisical/infisical:${INFISICAL_IMAGE_TAG}
+    container_name: infisical-backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+    ports:
+      # Host port 80 is owned by system Nginx. Publish a high port for the reverse proxy.
+      - "18080:8080"
+    networks:
+      - shared-network
+
+networks:
+  shared-network:
+    external: true
+    name: shared-network

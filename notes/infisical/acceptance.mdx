@@ -1,0 +1,51 @@
+---
+title: "Infisical 上线验收清单"
+description: "自托管 Infisical 上线前的可执行验收条目。容器 Up 不能单独作为通过条件"
+---
+
+每一项都要留下命令输出或截图（注意脱敏）。`docker compose ps` 为 `Up` 只覆盖第 1 条。
+
+## 应用与依赖
+
+- [ ] Compose 服务正常启动：`docker compose ps` 中 `backend` 为 `Up`，没有持续 `Restarting`。
+- [ ] 镜像为钉死的 `vX.Y.Z`，不是 `latest`：`docker compose images` 或 `docker inspect infisical-backend --format '{{.Config.Image}}'`。
+- [ ] 容器已加入外部网络：`docker network inspect shared-network` 能看到 Infisical、PostgreSQL、Redis。
+- [ ] PostgreSQL 已连接：应用日志无认证失败；`psql` 能进 `infisical` 库。
+- [ ] Redis 已连接：日志无 Redis `ECONNREFUSED`；从 `shared-network` 对 `redis:6379` `nc` 成功。
+- [ ] 数据库迁移完成，无阻塞错误：`docker compose logs backend` 中迁移结束，没有停在 `Invalid key length` 或 `database "infisical" does not exist`。
+
+## 本机与业务就绪
+
+- [ ] 首页可访问：浏览器打开 `http://127.0.0.1:18080`（接域名后改为正式 URL）能看到 Infisical UI。
+- [ ] `/api/status` 返回成功：
+
+```bash
+curl -sS http://127.0.0.1:18080/api/status
+# 域名与 HTTPS 就绪后：
+curl -sS https://infisical.example.com/api/status
+```
+
+- [ ] 已用非示例 `ENCRYPTION_KEY` / `AUTH_SECRET`，并完成离线备份（密码管理器或离线信封，不进 Git）。
+- [ ] 第一个管理员账号已创建（第一个注册用户即实例管理员）。
+
+## 域名与 TLS
+
+- [ ] DNS：`infisical.example.com` 的 `A` 记录指向源站；申请证书期间为 DNS only。
+- [ ] HTTP 会跳转 HTTPS：`curl -sSI http://infisical.example.com` 返回 `301`/`308`，`Location` 为 `https://infisical.example.com/...`。
+- [ ] HTTPS 证书有效：`openssl s_client` 看到 Let’s Encrypt（或你选定的 CA），域名匹配，日期未过期。
+- [ ] 域名访问正常：浏览器无证书告警，登录流程能走完。
+- [ ] `SITE_URL` 指向正式域名 `https://infisical.example.com`，重启过 backend，跳转不再回到 `127.0.0.1`。
+
+## Cloudflare（若启用代理）
+
+- [ ] 源站 HTTPS 在灰云下已经单独验证通过。
+- [ ] 橙色云开启后，SSL/TLS 模式为 `Full (strict)`，不是 Flexible。
+
+## 运维基线
+
+- [ ] `.env` 权限为 `600`，未提交到版本库。
+- [ ] `certbot.timer`（或 cron）存在，且 `certbot renew --dry-run` 成功。
+- [ ] 已记录：镜像 tag、外部网络名、Postgres/Redis 服务名、反代端口 `18080`。
+- [ ] SMTP 未配置时，已知晓日志会有发信错误，**不**把它当作验收失败。
+
+全部勾完后再把服务交给其他人使用。缺 `/api/status` 或正式 `SITE_URL` 的部署，视为未验收。
