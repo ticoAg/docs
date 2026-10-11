@@ -3,6 +3,7 @@
 ## 2026-10-11
 
 * **Creation**: 写入 Infisical 自托管手册（部署、域名/HTTPS、排障、验收清单）及去敏后的 `.env` / Compose / Nginx 示例。不含真实 IP、密码或账户信息。
+* **Update**: EdgeOne 笔记里的站点域名改为 `example.com`。家用 Ubuntu 远程桌面 runbook 去掉主机别名、图形用户名，以及公网转发和本机防火墙关闭的写法；主机与用户改为 `<host>` / `<user>`。
 
 ## 2026-08-23
 
