@@ -1,3 +1,5 @@
+> Cursor Cloud Agent smoke test — safe to delete (2026-10-11)
+
 # ticoAg's notes
 
 Mintlify 文档站：个人笔记 + AI 智能体资源目录。
