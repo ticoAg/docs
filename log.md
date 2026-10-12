@@ -1,5 +1,9 @@
 # Directory Update Log
 
+## 2026-10-12
+
+* **Creation**: 远程桌面下新增 RustDesk 组网直连 runbook。只记无头桌面、Direct IP、回环防火墙和 systemd 启动超时，不写主机、地址、账号或密码。组网安装仍留在已有 EasyTier 笔记。
+
 ## 2026-10-11
 
 * **Creation**: 写入 Infisical 自托管手册（部署、域名/HTTPS、排障、验收清单）及去敏后的 `.env` / Compose / Nginx 示例。不含真实 IP、密码或账户信息。

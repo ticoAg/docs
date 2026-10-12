@@ -1,0 +1,105 @@
+---
+title: 'RustDesk 走组网直连'
+description: '不建 ID/中继，用组网地址直连无头 Linux。含虚拟桌面、Direct IP、回环被防火墙丢掉，以及 systemd 启动超时把已连上的会话杀掉。'
+type: Runbook
+tags: [rustdesk, easytier, overlay, xfce, lightdm, direct-ip]
+timestamp: 2026-10-12T00:00:00Z
+generated: { by: okf-docs-organizer/v0.2, at: 2026-10-12T08:50:00Z }
+status: stable
+sources:
+  - id: rustdesk-advanced
+    resource: https://rustdesk.com/docs/en/self-host/client-configuration/advanced-settings/
+    title: RustDesk advanced settings（direct-server、direct-access-port）
+  - id: rustdesk-client
+    resource: https://rustdesk.com/docs/en/client/
+    title: RustDesk client（--password）
+---
+
+控制端只装 RustDesk 客户端。被控端开 **Direct IP**，连接框填组网地址，不部署 `hbbs` / `hbbr`，也不把 Direct IP 端口暴露到公网。
+
+组网怎么装、怎么避开本机代理 TUN，见已有的 EasyTier 笔记。这篇只记 RustDesk 叠在已经通的组网上。密码、主机名、组网地址不要写进笔记。
+
+和 [家用 Ubuntu 远程桌面](/notes/remote-desktop/home-ubuntu-rdp) 里的「假连通」是同一类问题：客户端 TCP 握手成功，不等于对端进程收到了会话。
+
+以下行为在 RustDesk 1.5.0 上见过。
+
+## 两套密码
+
+|          | RustDesk 永久密码                          | 图形桌面登录                         |
+| -------- | ------------------------------------------ | ------------------------------------ |
+| 谁在问   | 客户端弹出的 RustDesk 验证                 | 显示管理器（LightDM 等）             |
+| 存在哪   | RustDesk 配置，`rustdesk --password` 设置  | Linux 账户                           |
+| SSH 密钥 | 无关                                       | 密钥能登录，不代表这里有可用密码     |
+
+`passwd -S` 第二列是 `L`，且 shadow 里只有锁定标记、后面没有哈希时，账户等于没有密码。`passwd -u` 会拒绝，因为解开后会变成空密码。要用 `chpasswd` 设一个新密码。
+
+无头机可以给显示管理器配自动登录，连上后直接进桌面。账户仍处于锁定状态时，自动登录也会被 PAM 拒绝，所以要先有可用密码。
+
+## 无头被控端
+
+没有正在运行的图形会话时，只装 RustDesk 包不够。需要一套轻量桌面、虚拟显示器和显示管理器，例如 XFCE、`xserver-xorg-video-dummy`、LightDM，并把默认目标保持在 `graphical.target`。
+
+虚拟屏用 1920×1080 即可。配置放在 `/etc/X11/xorg.conf.d/`，驱动名是 `dummy`。
+
+被控端：
+
+```sh
+rustdesk --option direct-server Y
+```
+
+Direct IP 默认端口是 **21118/tcp**。[^rustdesk-advanced] 永久密码：
+
+```sh
+rustdesk --password '<permanent-password>'
+```
+
+[^rustdesk-client]
+
+官方包自带的 `rustdesk.service` 以 root 跑 `--service`，真正抓画面的 `--server` 会落到当前图形用户（经常是显示管理器用户）。密码写在 root 的配置里即可，不必再给图形用户抄一份。
+
+`local-ip-addr` 会在启动后被改成默认路由上的地址，经常是公网地址。直连时以连接框里手填的组网地址为准，不要抄界面上自动探测出来的地址。
+
+## 防火墙要放行回环
+
+组网用户态 TCP 收到连往「本机组网地址:21118」的流之后，会再从本机拨一次这个地址。路由显示该地址是本机（`dev lo`），所以这条内层连接从 **lo** 进来，不是从组网网卡进来。
+
+若规则是「入接口不是组网网卡就丢弃 21118」：
+
+- 客户端 `nc` 显示端口开。用户态栈先完成了外层握手。
+- 被控端上 `easytier-core` 对自己的组网地址:21118 停在 `SYN-SENT`。
+- RustDesk 日志没有 `direct access`。
+- 大约 10 秒后客户端报「连接被对方关闭」。
+
+放行组网网卡和 `lo`，其它接口仍然丢弃。nftables 示例：
+
+```nft
+tcp dport 21118 iifname != "tun0" iifname != "lo" drop
+```
+
+网卡名按实际组网接口改。UFW 只写 `allow in on <mesh-iface>` 通常不够说明回环：UFW 默认放行 `lo`，所以这条路径能通；显式「非组网网卡一律丢」会把 `lo` 一起丢掉。
+
+判断是否真的到达 RustDesk，看被控端日志里的 `direct access` 和 `Connection opened`，不要只看客户端 `nc`。
+
+## 不要让启动后命令挂死服务
+
+`rustdesk --option ...` 可能不返回。把它放进 `ExecStartPost`（例如先 `sleep` 再改 `local-ip-addr`）时，systemd 会一直等这条命令。默认启动超时后，单元被标为 `timeout`，**整个服务包括已经接受的连接会被杀掉**。客户端同样显示「连接被对方关闭」，而且会发生在 RustDesk 密码框已经弹出之后。
+
+组网地址不需要靠这条命令维持。要改选项就单独执行，确认命令退出后再离开。
+
+防火墙若是独立 oneshot，RustDesk 单元用 `Wants=` 和 `After=` 拉它。不要用 `Requires=`。`Requires=` 下重启防火墙会把正在使用的 RustDesk 一起停掉。
+
+## 公共 ID 服务器
+
+Direct IP 不需要公共 rendezvous。把 ID 服务器设成 `127.0.0.1` 可以避免走到公共中继，但进程会反复向本机 `21116` / `21114` 注册、心跳和写审计。没有自建服务时这些请求都会失败，日志很吵。
+
+这不是断线原因。先看 21118 的内层连接有没有建立，再看服务是不是被 systemd 杀掉。
+
+## 控制端
+
+macOS 用 Homebrew cask 安装客户端，版本与被控端对齐。控制别人不需要本机的录屏或辅助功能授权；那些权限只在这台机器自己被控时才要。
+
+连接框输入组网地址。先过 RustDesk 永久密码，再进入对方桌面。对方若开了自动登录，第二步不会再问 Linux 密码。
+
+[^rustdesk-advanced]: RustDesk advanced settings（direct-server、direct-access-port）
+
+[^rustdesk-client]: RustDesk client（--password）

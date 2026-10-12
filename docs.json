@@ -110,7 +110,10 @@
 					},
 					{
 						"group": "远程桌面",
-						"pages": ["notes/remote-desktop/home-ubuntu-rdp"]
+						"pages": [
+							"notes/remote-desktop/home-ubuntu-rdp",
+							"notes/remote-desktop/rustdesk-overlay"
+						]
 					},
 					{
 						"group": "云与办公栈",
