@@ -1,5 +1,9 @@
 # Directory Update Log
 
+## 2026-10-17
+
+* **Creation**: 新增 `scripts/betterdisplay` 与笔记「BetterDisplay 试用痕迹清理」。默认只清本机 Paddle 授权/试用文件并保留显示器配置；注明服务端仍可能按设备识别旧试用。
+
 ## 2026-10-12
 
 * **Creation**: 远程桌面下新增 RustDesk 组网直连 runbook。只记无头桌面、Direct IP、回环防火墙和 systemd 启动超时，不写主机、地址、账号或密码。组网安装仍留在已有 EasyTier 笔记。

@@ -1,0 +1,218 @@
+#!/usr/bin/env bash
+# Clear BetterDisplay local trial/license traces so the app can re-prompt.
+# Default keeps display settings. Paddle may still recognize this Mac server-side.
+#
+# Usage:
+#   betterdisplay                 # quit app, clear license/trial only
+#   betterdisplay --all           # also wipe prefs/caches/HTTPStorages/WebKit
+#   betterdisplay -y              # skip confirmation
+#   betterdisplay --dry-run       # show what would be removed
+#   betterdisplay --restart       # relaunch BetterDisplay afterwards
+set -euo pipefail
+
+APP_NAME="BetterDisplay"
+PREF_DOMAIN="pro.betterdisplay.BetterDisplay"
+APP_SUPPORT="${HOME}/Library/Application Support/BetterDisplay"
+CACHE_DIR="${HOME}/Library/Caches/pro.betterdisplay.BetterDisplay"
+SENTRY_DIR="${HOME}/Library/Caches/SentryCrash/BetterDisplay"
+HTTP_DIR="${HOME}/Library/HTTPStorages/pro.betterdisplay.BetterDisplay"
+WEBKIT_DIR="${HOME}/Library/WebKit/pro.betterdisplay.BetterDisplay"
+PREF_FILE="${HOME}/Library/Preferences/${PREF_DOMAIN}.plist"
+APP_PATH="/Applications/BetterDisplay.app"
+
+mode="license" # license | all
+assume_yes=0
+dry_run=0
+restart=0
+
+usage() {
+  cat <<'EOF'
+Clear BetterDisplay local trial/license traces so the app can re-prompt.
+Default keeps display settings. Paddle may still recognize this Mac server-side.
+
+Usage:
+  betterdisplay                 # quit app, clear license/trial only
+  betterdisplay --all           # also wipe prefs/caches/HTTPStorages/WebKit
+  betterdisplay -y              # skip confirmation
+  betterdisplay --dry-run       # show what would be removed
+  betterdisplay --restart       # relaunch BetterDisplay afterwards
+EOF
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --all) mode="all" ;;
+    -y|--yes) assume_yes=1 ;;
+    --dry-run) dry_run=1 ;;
+    --restart) restart=1 ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "unknown option: $1" >&2
+      usage >&2
+      exit 2
+      ;;
+  esac
+  shift
+done
+
+run() {
+  if [[ "$dry_run" -eq 1 ]]; then
+    printf '[dry-run]'
+    printf ' %q' "$@"
+    printf '\n'
+  else
+    "$@"
+  fi
+}
+
+quit_app() {
+  if ! pgrep -xq "$APP_NAME"; then
+    echo "app not running"
+    return 0
+  fi
+  echo "quitting $APP_NAME..."
+  if [[ "$dry_run" -eq 1 ]]; then
+    echo "[dry-run] quit $APP_NAME"
+    return 0
+  fi
+  osascript -e "quit app \"$APP_NAME\"" >/dev/null 2>&1 || true
+  for _ in 1 2 3 4 5 6 7 8 9 10; do
+    if ! pgrep -xq "$APP_NAME"; then
+      echo "quit ok"
+      return 0
+    fi
+    sleep 0.5
+  done
+  echo "force killing $APP_NAME..." >&2
+  pkill -x "$APP_NAME" || true
+  sleep 1
+  if pgrep -xq "$APP_NAME"; then
+    echo "failed to quit $APP_NAME" >&2
+    exit 1
+  fi
+  echo "quit ok"
+}
+
+list_paddle_keys() {
+  defaults read "$PREF_DOMAIN" 2>/dev/null \
+    | sed -n 's/^[[:space:]]*"\(Paddle[^"]*\)".*/\1/p; s/^[[:space:]]*\(Paddle[^=[:space:]]*\)[[:space:]]*=.*/\1/p' \
+    | sort -u
+}
+
+clear_license() {
+  shopt -s nullglob
+  local files=("$APP_SUPPORT"/*.padl "$APP_SUPPORT"/*.spadl)
+  if [[ ${#files[@]} -eq 0 ]]; then
+    echo "no .padl/.spadl under $APP_SUPPORT"
+  else
+    for f in "${files[@]}"; do
+      echo "remove $f"
+      run rm -f "$f"
+    done
+  fi
+
+  local keys
+  keys="$(list_paddle_keys || true)"
+  if [[ -z "$keys" ]]; then
+    echo "no Paddle preference keys"
+  else
+    while IFS= read -r key; do
+      [[ -n "$key" ]] || continue
+      echo "defaults delete $PREF_DOMAIN $key"
+      run defaults delete "$PREF_DOMAIN" "$key"
+    done <<<"$keys"
+  fi
+}
+
+clear_all() {
+  clear_license
+  local paths=(
+    "$PREF_FILE"
+    "$APP_SUPPORT"
+    "$CACHE_DIR"
+    "$SENTRY_DIR"
+    "$HTTP_DIR"
+    "$WEBKIT_DIR"
+  )
+  for p in "${paths[@]}"; do
+    if [[ -e "$p" ]]; then
+      echo "remove $p"
+      run rm -rf "$p"
+    else
+      echo "skip missing $p"
+    fi
+  done
+}
+
+flush_prefs() {
+  if [[ "$dry_run" -eq 1 ]]; then
+    echo "[dry-run] killall cfprefsd"
+    return 0
+  fi
+  killall cfprefsd 2>/dev/null || true
+}
+
+confirm() {
+  if [[ "$assume_yes" -eq 1 || "$dry_run" -eq 1 ]]; then
+    return 0
+  fi
+  local scope="license/trial traces only (keep display settings)"
+  [[ "$mode" == "all" ]] && scope="ALL local BetterDisplay data (prefs/caches included)"
+  echo "About to clear: $scope"
+  echo "Note: Paddle may still recognize this Mac server-side; local wipe may not restart the trial."
+  read -r -p "Continue? [y/N] " ans
+  case "$ans" in
+    y|Y|yes|YES) ;;
+    *)
+      echo "aborted"
+      exit 1
+      ;;
+  esac
+}
+
+main() {
+  confirm
+  quit_app
+  if [[ "$mode" == "all" ]]; then
+    clear_all
+  else
+    clear_license
+  fi
+  flush_prefs
+
+  if [[ "$dry_run" -eq 0 ]]; then
+    echo
+    echo "=== after ==="
+    if [[ -d "$APP_SUPPORT" ]]; then
+      ls -la "$APP_SUPPORT" || true
+    else
+      echo "Application Support removed/absent"
+    fi
+    if defaults read "$PREF_DOMAIN" >/dev/null 2>&1; then
+      if list_paddle_keys | grep -q .; then
+        echo "remaining Paddle keys:"
+        list_paddle_keys
+      else
+        echo "no Paddle preference keys remain"
+      fi
+    else
+      echo "preference domain absent"
+    fi
+  fi
+
+  if [[ "$restart" -eq 1 ]]; then
+    if [[ ! -d "$APP_PATH" ]]; then
+      echo "cannot restart: $APP_PATH missing" >&2
+      exit 1
+    fi
+    echo "relaunching $APP_NAME..."
+    run open -a "$APP_NAME"
+  fi
+
+  echo "done"
+}
+
+main

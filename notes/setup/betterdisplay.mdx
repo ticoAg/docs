@@ -1,0 +1,41 @@
+---
+title: 'BetterDisplay 试用痕迹清理'
+description: '本机 CLI betterdisplay：退出应用后清掉 Paddle 授权/试用文件，默认保留显示器配置。'
+type: Runbook
+tags: [macos, betterdisplay, paddle, trial]
+timestamp: 2026-10-17T00:00:00Z
+status: stable
+---
+
+清理 BetterDisplay 本机留下的试用/授权痕迹，方便重新走引导。默认只动授权文件，显示器配置保留。
+
+试用状态由 Paddle 管理。本机文件清掉后，服务端仍可能按设备识别旧试用，不一定能重新起算试用期。
+
+## 安装
+
+仓库内脚本：`scripts/betterdisplay`。链到 PATH：
+
+```sh
+ln -sf "$(pwd)/scripts/betterdisplay" ~/.local/bin/betterdisplay
+chmod +x scripts/betterdisplay ~/.local/bin/betterdisplay
+```
+
+## 用法
+
+```sh
+betterdisplay                 # 交互确认，只清授权/试用痕迹
+betterdisplay -y              # 跳过确认
+betterdisplay -y --restart    # 清完后重新打开应用
+betterdisplay --all -y        # 连偏好、缓存一并清掉
+betterdisplay --dry-run       # 只预览，不实际删除
+```
+
+## 默认会删什么
+
+- `~/Library/Application Support/BetterDisplay/*.padl`
+- `~/Library/Application Support/BetterDisplay/*.spadl`
+- 偏好域 `pro.betterdisplay.BetterDisplay` 里以 `Paddle` 开头的键
+
+`--all` 额外删除该应用的偏好 plist、Application Support、Caches、HTTPStorages、WebKit、SentryCrash 目录。
+
+脚本会先退出 BetterDisplay；退出失败时再强制结束进程。

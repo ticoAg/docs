@@ -101,7 +101,8 @@
 						"group": "系统与环境",
 						"pages": [
 							"notes/setup/macos",
-							"notes/setup/github-pages"
+							"notes/setup/github-pages",
+							"notes/setup/betterdisplay"
 						]
 					},
 					{
